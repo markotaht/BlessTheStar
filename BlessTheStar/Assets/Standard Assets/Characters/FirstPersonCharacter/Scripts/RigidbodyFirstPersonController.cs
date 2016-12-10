@@ -10,7 +10,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
     {
         private Transform tr;
-
+        
         private Vector3 m_StandingPos;
         private Vector3 m_CrouchingPos;
         private Vector3 m_CurrentSpeed;
@@ -21,9 +21,9 @@ namespace UnityStandardAssets.Characters.FirstPerson
             public float BackwardSpeed = 4.0f;  // Speed when walking backwards
             public float StrafeSpeed = 4.0f;    // Speed when walking sideways
             public float RunMultiplier = 2.0f;   // Speed when sprinting
-            public float CrouchMultiplier = 0.5f; // Crouch walk speed
+            public float CrouchSpeed = 3.0f; // Crouch walk speed
 	        public KeyCode RunKey = KeyCode.LeftShift;
-            public KeyCode CrouchKey = KeyCode.LeftControl;
+            public KeyCode CrouchKey = KeyCode.X;
             public float JumpForce = 30f;
             
             public AnimationCurve SlopeCurveModifier = new AnimationCurve(new Keyframe(-90.0f, 1.0f), new Keyframe(0.0f, 1.0f), new Keyframe(90.0f, 0.0f));
@@ -55,7 +55,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 #if !MOBILE_INPUT
                 if (Input.GetKey(CrouchKey))
                 {
-                    CurrentTargetSpeed *= CrouchMultiplier;
+                    CurrentTargetSpeed = CrouchSpeed;
                     m_Crouching = true;
                 }
 	            else if (Input.GetKey(RunKey))
@@ -84,11 +84,12 @@ namespace UnityStandardAssets.Characters.FirstPerson
         public class AdvancedSettings
         {
             public float groundCheckDistance = 0.01f; // distance for checking if the controller is grounded ( 0.01f seems to work best for this )
-            public float stickToGroundHelperDistance = 0.5f; // stops the character
+            public float stickToGroundHelperDistance = 0.1f; // stops the character
             public float slowDownRate = 20f; // rate at which the controller comes to a stop when there is no input
-            public bool airControl; // can the user control the direction that is being moved in the air
+            public float crouchDistance = 0.2f; // default crouch length
+            public bool airControl = true; // can the user control the direction that is being moved in the air
             [Tooltip("set it to 0.1 or more if you get stuck in wall")]
-            public float shellOffset; //reduce the radius by that ratio to avoid getting stuck in wall (a value of 0.1f is nice)
+            public float shellOffset = 0.1f; //reduce the radius by that ratio to avoid getting stuck in wall (a value of 0.1f is nice)
         }
 
 
@@ -104,6 +105,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private float m_YRotation;
         private Vector3 m_GroundContactNormal;
         private bool m_Jump, m_PreviouslyGrounded, m_Jumping, m_IsGrounded, m_Crouch;
+        private bool m_Crouching, justStoppedCrouching;
 
 
         public Vector3 Velocity
@@ -123,7 +125,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         public bool Crouching
         {
-            get { return m_Crouch; }
+            get { return m_Crouching; }
         }
         public bool Running
         {
@@ -137,14 +139,15 @@ namespace UnityStandardAssets.Characters.FirstPerson
             }
         }
 
-
+  
         private void Start()
         {
             m_RigidBody = GetComponent<Rigidbody>();
             m_Capsule = GetComponent<CapsuleCollider>();
             mouseLook.Init (transform, cam.transform);
             tr = transform;
-          
+            
+            justStoppedCrouching = false;
 
         }
 
@@ -165,6 +168,13 @@ namespace UnityStandardAssets.Characters.FirstPerson
                // cam.transform.position = new Vector3(currPos.x, currPos.y - 10, currPos.z);
                 m_Crouch = true;
 
+
+            }
+            if (CrossPlatformInputManager.GetButtonUp("Crouch") && m_Crouch)
+            {
+                
+                m_Crouch = false;
+                justStoppedCrouching = true;
             }
         }
 
@@ -201,21 +211,35 @@ namespace UnityStandardAssets.Characters.FirstPerson
                     m_RigidBody.AddForce(new Vector3(0f, movementSettings.JumpForce, 0f), ForceMode.Impulse);
                     m_Jumping = true;
                 }
-                if (m_Crouch)
+                if (m_Crouch && !m_Crouching)
                 {
-        //            cam.transform.localScale.Set(cam.transform.position.x,cam.transform.position.y-100,cam.transform.position.z);
-                    
-                    m_RigidBody.GetComponent<CapsuleCollider>().height -= 2;
-                    
-                    
 
+
+                    transform.localScale -= new Vector3(0,advancedSettings.crouchDistance,0);
+                    m_Capsule.height -= 0.2f;
+                   
+                    //            cam.transform.localScale.Set(cam.transform.position.x,cam.transform.position.y-100,cam.transform.position.z);
+
+                    // m_RigidBody.GetComponent<CapsuleCollider>().height -= 5;
+                    // tr.localScale += new Vector3(0,0.8f,0);
                     //    m_RigidBody.GetComponent<CapsuleCollider>().center
                     //   cam.transform.localPosition.Set(12,2,2);
                     // m_RigidBody.position = new Vector3(cam.transform.position.x,cam.transform.localScale.y,cam.transform.position.z);
                     //  m_RigidBody.transform.position.y -= 100;
+                    m_Crouching = true;
+                   
 
                 }
-                if (!m_Jumping && Mathf.Abs(input.x) < float.Epsilon && Mathf.Abs(input.y) < float.Epsilon && m_RigidBody.velocity.magnitude < 1f)
+
+                if (justStoppedCrouching)
+                {   
+                //    tr.localScale += new Vector3(0, 0.8f, 0);
+                    m_Capsule.height += 0.2f;
+                    transform.localScale += new Vector3(0,advancedSettings.crouchDistance,0);
+                    m_Crouching = false;
+                    justStoppedCrouching = false;
+                }
+                if (!m_Crouching && !m_Jumping && Mathf.Abs(input.x) < float.Epsilon && Mathf.Abs(input.y) < float.Epsilon && m_RigidBody.velocity.magnitude < 1f)
                 {
                     m_RigidBody.Sleep();
                 }

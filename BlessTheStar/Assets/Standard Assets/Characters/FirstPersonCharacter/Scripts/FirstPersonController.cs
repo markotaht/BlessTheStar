@@ -42,6 +42,10 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private bool m_Jumping;
         private AudioSource m_AudioSource;
 
+
+        private bool m_Crouch;
+        private bool m_Crouching;
+
         // Use this for initialization
         private void Start()
         {
@@ -53,6 +57,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
             m_StepCycle = 0f;
             m_NextStep = m_StepCycle/2f;
             m_Jumping = false;
+            m_Crouching = false;
             m_AudioSource = GetComponent<AudioSource>();
 			m_MouseLook.Init(transform , m_Camera.transform);
         }
@@ -66,6 +71,10 @@ namespace UnityStandardAssets.Characters.FirstPerson
             if (!m_Jump)
             {
                 m_Jump = CrossPlatformInputManager.GetButtonDown("Jump");
+            }
+            if (!m_Crouch)
+            {
+                m_Crouch = CrossPlatformInputManager.GetButtonDown("Crouch");
             }
 
             if (!m_PreviouslyGrounded && m_CharacterController.isGrounded)
@@ -113,6 +122,11 @@ namespace UnityStandardAssets.Characters.FirstPerson
             {
                 m_MoveDir.y = -m_StickToGroundForce;
 
+                if (m_Crouch)
+                {
+                    m_Crouch = false;
+                    m_Crouching = true;
+                }
                 if (m_Jump)
                 {
                     m_MoveDir.y = m_JumpSpeed;
@@ -170,6 +184,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
             // excluding sound at index 0
             int n = Random.Range(1, m_FootstepSounds.Length);
             m_AudioSource.clip = m_FootstepSounds[n];
+            
             m_AudioSource.PlayOneShot(m_AudioSource.clip);
             // move picked sound to index 0 so it's not picked next time
             m_FootstepSounds[n] = m_FootstepSounds[0];
