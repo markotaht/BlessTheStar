@@ -1,19 +1,14 @@
 using System;
 using UnityEngine;
 using UnityStandardAssets.CrossPlatformInput;
+using UnityEngine.UI;
 
 namespace UnityStandardAssets.Characters.FirstPerson
 {
     [RequireComponent(typeof (Rigidbody))]
     [RequireComponent(typeof (CapsuleCollider))]
     public class RigidbodyFirstPersonController : MonoBehaviour
-
     {
-        private Transform tr;
-
-        private Vector3 m_StandingPos;
-        private Vector3 m_CrouchingPos;
-        private Vector3 m_CurrentSpeed;
         [Serializable]
         public class MovementSettings
         {
@@ -21,16 +16,13 @@ namespace UnityStandardAssets.Characters.FirstPerson
             public float BackwardSpeed = 4.0f;  // Speed when walking backwards
             public float StrafeSpeed = 4.0f;    // Speed when walking sideways
             public float RunMultiplier = 2.0f;   // Speed when sprinting
-            public float CrouchMultiplier = 0.5f; // Crouch walk speed
 	        public KeyCode RunKey = KeyCode.LeftShift;
-            public KeyCode CrouchKey = KeyCode.LeftControl;
             public float JumpForce = 30f;
-            
             public AnimationCurve SlopeCurveModifier = new AnimationCurve(new Keyframe(-90.0f, 1.0f), new Keyframe(0.0f, 1.0f), new Keyframe(90.0f, 0.0f));
             [HideInInspector] public float CurrentTargetSpeed = 8f;
 
 #if !MOBILE_INPUT
-            private bool m_Running, m_Crouching;
+            private bool m_Running;
 #endif
 
             public void UpdateDesiredTargetSpeed(Vector2 input)
@@ -53,21 +45,15 @@ namespace UnityStandardAssets.Characters.FirstPerson
 					CurrentTargetSpeed = ForwardSpeed;
 				}
 #if !MOBILE_INPUT
-                if (Input.GetKey(CrouchKey))
-                {
-                    CurrentTargetSpeed *= CrouchMultiplier;
-                    m_Crouching = true;
-                }
-	            else if (Input.GetKey(RunKey))
+	            if (Input.GetKey(RunKey))
 	            {
 		            CurrentTargetSpeed *= RunMultiplier;
 		            m_Running = true;
-                }
+	            }
 	            else
 	            {
 		            m_Running = false;
-                    m_Crouching = false;
-                }
+	            }
 #endif
             }
 
@@ -93,7 +79,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
 
         public Camera cam;
-        
         public MovementSettings movementSettings = new MovementSettings();
         public MouseLook mouseLook = new MouseLook();
         public AdvancedSettings advancedSettings = new AdvancedSettings();
@@ -103,8 +88,12 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private CapsuleCollider m_Capsule;
         private float m_YRotation;
         private Vector3 m_GroundContactNormal;
-        private bool m_Jump, m_PreviouslyGrounded, m_Jumping, m_IsGrounded, m_Crouch;
+        private bool m_Jump, m_PreviouslyGrounded, m_Jumping, m_IsGrounded;
 
+		private int score;
+		public Text scoreText;
+		private float time;
+		public Text timerText;
 
         public Vector3 Velocity
         {
@@ -121,10 +110,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
             get { return m_Jumping; }
         }
 
-        public bool Crouching
-        {
-            get { return m_Crouch; }
-        }
         public bool Running
         {
             get
@@ -143,28 +128,22 @@ namespace UnityStandardAssets.Characters.FirstPerson
             m_RigidBody = GetComponent<Rigidbody>();
             m_Capsule = GetComponent<CapsuleCollider>();
             mouseLook.Init (transform, cam.transform);
-            tr = transform;
-          
+			score = 0;
+			time = 0.0f;
 
+			UpdateScoreText ();
         }
 
 
         private void Update()
         {
             RotateView();
+			time += Time.deltaTime;
+			UpdateTimeText ();
 
             if (CrossPlatformInputManager.GetButtonDown("Jump") && !m_Jump)
             {
                 m_Jump = true;
-            }
-            if(CrossPlatformInputManager.GetButtonDown("Crouch") && !m_Crouch)
-            {
-           //     Vector3 currPos = cam.transform.position;
-
-          //      currPos.z -= 100;
-               // cam.transform.position = new Vector3(currPos.x, currPos.y - 10, currPos.z);
-                m_Crouch = true;
-
             }
         }
 
@@ -201,20 +180,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
                     m_RigidBody.AddForce(new Vector3(0f, movementSettings.JumpForce, 0f), ForceMode.Impulse);
                     m_Jumping = true;
                 }
-                if (m_Crouch)
-                {
-        //            cam.transform.localScale.Set(cam.transform.position.x,cam.transform.position.y-100,cam.transform.position.z);
-                    
-                    m_RigidBody.GetComponent<CapsuleCollider>().height -= 2;
-                    
-                    
 
-                    //    m_RigidBody.GetComponent<CapsuleCollider>().center
-                    //   cam.transform.localPosition.Set(12,2,2);
-                    // m_RigidBody.position = new Vector3(cam.transform.position.x,cam.transform.localScale.y,cam.transform.position.z);
-                    //  m_RigidBody.transform.position.y -= 100;
-
-                }
                 if (!m_Jumping && Mathf.Abs(input.x) < float.Epsilon && Mathf.Abs(input.y) < float.Epsilon && m_RigidBody.velocity.magnitude < 1f)
                 {
                     m_RigidBody.Sleep();
@@ -237,7 +203,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
             float angle = Vector3.Angle(m_GroundContactNormal, Vector3.up);
             return movementSettings.SlopeCurveModifier.Evaluate(angle);
         }
-        
+
 
         private void StickToGroundHelper()
         {
@@ -306,5 +272,37 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 m_Jumping = false;
             }
         }
+
+		void OnTriggerEnter(Collider other) 
+		{
+			if (other.gameObject.CompareTag ("Small Orb"))
+			{
+				other.gameObject.SetActive (false);
+				score += 1;
+				UpdateScoreText ();
+			}
+			else if (other.gameObject.CompareTag ("Medium Orb"))
+			{
+				other.gameObject.SetActive (false);
+				score += 3;
+				UpdateScoreText ();
+			}
+			else if (other.gameObject.CompareTag ("Large Orb"))
+			{
+				other.gameObject.SetActive (false);
+				score += 5;
+				UpdateScoreText ();
+			}
+		}
+
+		void UpdateScoreText()
+		{
+			scoreText.text = "Score: " + score.ToString ();
+		}
+
+		void UpdateTimeText()
+		{
+			timerText.text = "Time: " + Math.Round(time, 2).ToString ();
+		}
     }
 }
