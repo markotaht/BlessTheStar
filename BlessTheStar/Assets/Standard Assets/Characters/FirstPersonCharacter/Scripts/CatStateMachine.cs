@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityStandardAssets.Utility;
 
 [RequireComponent(typeof(Rigidbody))]
 public class CatStateMachine: MonoBehaviour {
@@ -15,6 +16,7 @@ public class CatStateMachine: MonoBehaviour {
 	float timer;
 
     Rigidbody rigidBody;
+	public Transform target;
 
 	// Use this for initialization
 	void Start () {
@@ -44,11 +46,18 @@ public class CatStateMachine: MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-
     }
 
     void FixedUpdate()
     {	
+		Vector3 dist = target.position - transform.position;
+		float angle = Vector3.Dot(target.position, transform.position);
+		Debug.Log (angle);
+		dist = Quaternion.AngleAxis(-angle,Vector3.up) * dist;
+		Debug.Log (dist);
+		//rigidBody.AddForce (new Vector3(dist.normalized.x, dist.normalized.y, dist.normalized.z));
+		rigidBody.position = transform.position;
+
 		if(timer >0)
 			timer -= Time.deltaTime;
 		
@@ -77,4 +86,9 @@ public class CatStateMachine: MonoBehaviour {
 		Vector3 diff = player.position - transform.position;
 		return Vector3.Dot(diff, viewDir) > viewCone;
     }
+
+	public void SetTarget(Transform target)
+	{
+		this.target = target;
+	}
 }
