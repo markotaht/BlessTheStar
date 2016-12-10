@@ -10,11 +10,10 @@ namespace UnityStandardAssets.Characters.FirstPerson
     public class RigidbodyFirstPersonController : MonoBehaviour
 
     {
-        private Transform tr;
-        
-        private Vector3 m_StandingPos;
-        private Vector3 m_CrouchingPos;
-        private Vector3 m_CurrentSpeed;
+
+        private AudioSource m_audioSource;
+
+
         [Serializable]
         public class MovementSettings
         {
@@ -26,6 +25,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 	        public KeyCode RunKey = KeyCode.LeftShift;
             public KeyCode CrouchKey = KeyCode.X;
             public float JumpForce = 30f;
+
             
             public AnimationCurve SlopeCurveModifier = new AnimationCurve(new Keyframe(-90.0f, 1.0f), new Keyframe(0.0f, 1.0f), new Keyframe(90.0f, 0.0f));
             [HideInInspector] public float CurrentTargetSpeed = 8f;
@@ -94,11 +94,30 @@ namespace UnityStandardAssets.Characters.FirstPerson
         }
 
 
+        [Serializable]
+        public class SoundSetting
+        {
+            public AudioClip m_Footsteps;
+            public AudioClip m_Jumping;
+            public AudioClip m_Landing;
+            public AudioClip m_smallOrbAudio;
+            public AudioClip m_mediumOrbAudio;
+            public AudioClip m_bigOrbAudio;
+
+        }
+
+        private int maxScore;
+        private int score;
+        public Text scoreText;
+        private float time;
+        public Text timerText;
+
         public Camera cam;
         
         public MovementSettings movementSettings = new MovementSettings();
         public MouseLook mouseLook = new MouseLook();
         public AdvancedSettings advancedSettings = new AdvancedSettings();
+        public SoundSetting soundSettings = new SoundSetting();
 
 
         private Rigidbody m_RigidBody;
@@ -108,11 +127,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private bool m_Jump, m_PreviouslyGrounded, m_Jumping, m_IsGrounded, m_Crouch;
         private bool m_Crouching, justStoppedCrouching;
 
-		private int maxScore;
-		private int score;
-		public Text scoreText;
-		private float time;
-		public Text timerText;
 
         public Vector3 Velocity
         {
@@ -145,20 +159,22 @@ namespace UnityStandardAssets.Characters.FirstPerson
             }
         }
 
-  
+ 
         private void Start()
         {
+
+            score = 0;
+            maxScore = 27;
+            time = 0.0f;
+            m_audioSource = GetComponent<AudioSource>();
             m_RigidBody = GetComponent<Rigidbody>();
             m_Capsule = GetComponent<CapsuleCollider>();
             mouseLook.Init (transform, cam.transform);
-
-            tr = transform;
+            
             
             justStoppedCrouching = false;
 
-			maxScore = 27;
-			score = 0;
-			time = 0.0f;
+
         }
 
 
@@ -166,19 +182,21 @@ namespace UnityStandardAssets.Characters.FirstPerson
         {
             RotateView();
 
-			if (score < maxScore) {
-				time += Time.deltaTime;
-				UpdateTimeText ();
-			}
+            if (score < maxScore)
+            {
+                time += Time.deltaTime;
+                UpdateTimeText();
+            }
 
             if (CrossPlatformInputManager.GetButtonDown("Jump") && !m_Jump)
             {
+                playSound(soundSettings.m_Jumping);
                 m_Jump = true;
             }
             if(CrossPlatformInputManager.GetButtonDown("Crouch") && !m_Crouch)
             {
            //     Vector3 currPos = cam.transform.position;
-
+                playSound(soundSettings.m_Footsteps);
           //      currPos.z -= 100;
                // cam.transform.position = new Vector3(currPos.x, currPos.y - 10, currPos.z);
                 m_Crouch = true;
@@ -223,7 +241,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 {
                     m_RigidBody.drag = 0f;
                     m_RigidBody.velocity = new Vector3(m_RigidBody.velocity.x, 0f, m_RigidBody.velocity.z);
-                    m_RigidBody.AddForce(new Vector3(0f, movementSettings.JumpForce, 0f), ForceMode.Impulse);
+                    m_RigidBody.AddForce(new Vector3(0f, movementSettings.JumpForce,0f), ForceMode.Impulse);
                     m_Jumping = true;
                 }
                 if (m_Crouch && !m_Crouching)
@@ -268,6 +286,11 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 }
             }
             m_Jump = false;
+        }
+
+        private void playSound(AudioClip sound)
+        {
+            m_audioSource.PlayOneShot(sound);
         }
 
 
@@ -342,41 +365,54 @@ namespace UnityStandardAssets.Characters.FirstPerson
             }
             if (!m_PreviouslyGrounded && m_IsGrounded && m_Jumping)
             {
+
+                playSound(soundSettings.m_Landing);
                 m_Jumping = false;
             }
         }
 
-		void OnTriggerEnter(Collider other) 
-		{
-			if (other.gameObject.CompareTag ("Small Orb"))
-			{
-				other.gameObject.SetActive (false);
-				score += 1;
-				UpdateScoreText ();
-			}
-		else if (other.gameObject.CompareTag ("Medium Orb"))
-			{
-				other.gameObject.SetActive (false);
-				score += 3;
-				UpdateScoreText ();
-			}
-		else if (other.gameObject.CompareTag ("Large Orb"))
-			{
-				other.gameObject.SetActive (false);
-				score += 5;
-				UpdateScoreText ();
-			}
-		}
 
-		void UpdateScoreText()
-		{
-			scoreText.text = "Score: " + score.ToString ();
-		}
+        void OnTriggerEnter(Collider other)
+        {
 
-		void UpdateTimeText()
-		{
-			timerText.text = "Time: " + Math.Round(time, 2).ToString ();
-		}
+            AudioSource otherAudioSource = other.GetComponent<AudioSource>();
+            if (other.gameObject.CompareTag("Small Orb"))
+            {
+
+                m_audioSource.PlayOneShot(otherAudioSource.clip);
+                
+                other.gameObject.SetActive(false);
+                score += 1;
+            }
+            else if (other.gameObject.CompareTag("Medium Orb"))
+            {
+                
+                m_audioSource.PlayOneShot(otherAudioSource.clip);
+                other.gameObject.SetActive(false);
+                score += 3;
+            }
+            else if (other.gameObject.CompareTag("Large Orb"))
+            {
+                
+                m_audioSource.PlayOneShot(otherAudioSource.clip);
+                other.gameObject.SetActive(false);
+                score += 5;
+            }
+
+            UpdateScoreText(); // finally update score text
+        }
+
+
+        void UpdateScoreText()
+        {
+            scoreText.text = "Score: " + score.ToString();
+        }
+
+        void UpdateTimeText()
+        {
+            timerText.text = "Time: " + Math.Round(time, 2).ToString();
+        }
+    
 
     }
 }
