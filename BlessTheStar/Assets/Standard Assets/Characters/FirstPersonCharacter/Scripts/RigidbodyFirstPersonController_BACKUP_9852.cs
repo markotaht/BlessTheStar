@@ -107,11 +107,14 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private bool m_Jump, m_PreviouslyGrounded, m_Jumping, m_IsGrounded, m_Crouch;
         private bool m_Crouching, justStoppedCrouching;
 
+<<<<<<< HEAD
+=======
 		private int maxScore;
 		private int score;
 		public Text scoreText;
 		private float time;
 		public Text timerText;
+>>>>>>> ce5b5bf5d36bf17b955a4c4bc5fbcca0a60d27ed
 
         public Vector3 Velocity
         {
@@ -150,25 +153,29 @@ namespace UnityStandardAssets.Characters.FirstPerson
             m_RigidBody = GetComponent<Rigidbody>();
             m_Capsule = GetComponent<CapsuleCollider>();
             mouseLook.Init (transform, cam.transform);
-
+<<<<<<< HEAD
             tr = transform;
             
             justStoppedCrouching = false;
-
+=======
 			maxScore = 27;
 			score = 0;
 			time = 0.0f;
+>>>>>>> ce5b5bf5d36bf17b955a4c4bc5fbcca0a60d27ed
+
         }
 
 
         private void Update()
         {
             RotateView();
-
+<<<<<<< HEAD
+=======
 			if (score < maxScore) {
 				time += Time.deltaTime;
 				UpdateTimeText ();
 			}
+>>>>>>> ce5b5bf5d36bf17b955a4c4bc5fbcca0a60d27ed
 
             if (CrossPlatformInputManager.GetButtonDown("Jump") && !m_Jump)
             {
