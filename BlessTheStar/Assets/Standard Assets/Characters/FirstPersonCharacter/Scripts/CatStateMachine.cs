@@ -17,6 +17,7 @@ public class CatStateMachine: MonoBehaviour {
 
     Rigidbody rigidBody;
 	public Transform target;
+	public float speed;
 
 	// Use this for initialization
 	void Start () {
@@ -50,14 +51,20 @@ public class CatStateMachine: MonoBehaviour {
 
     void FixedUpdate()
     {	
-		Vector3 dist = target.position - transform.position;
-		float angle = Vector3.Dot(target.position, transform.position);
-		Debug.Log (angle);
-		dist = Quaternion.AngleAxis(-angle,Vector3.up) * dist;
-		Debug.Log (dist);
+	//	Vector3 dist = target.position - transform.position;
+	//	float angle = Vector3.Dot(target.position, transform.position);
+	//	Debug.Log (angle);
+	//	dist = Quaternion.AngleAxis(-angle,Vector3.up) * dist;
+	//	Debug.Log (dist);
 		//rigidBody.AddForce (new Vector3(dist.normalized.x, dist.normalized.y, dist.normalized.z));
-		rigidBody.position = transform.position;
-
+	//	rigidBody.position = transform.position;
+		Vector3 dir = target.transform.position - transform.position;
+		Quaternion rot = Quaternion.identity;
+		float rota = Vector2.Dot (new Vector2 (target.transform.position.x, target.transform.position.z), new Vector2 (transform.position.x, transform.position.z));
+		transform.position += dir * (Time.deltaTime * speed);
+		rot.eulerAngles = new Vector3 (90f, rota, 0f);
+		rigidBody.MoveRotation (rot);
+	
 		if(timer >0)
 			timer -= Time.deltaTime;
 		
