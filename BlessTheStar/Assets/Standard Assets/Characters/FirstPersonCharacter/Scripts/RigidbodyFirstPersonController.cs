@@ -105,7 +105,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private CapsuleCollider m_Capsule;
         private float m_YRotation;
         private Vector3 m_GroundContactNormal;
-        private bool m_Jump, m_PreviouslyGrounded, m_Jumping, m_IsGrounded, m_Crouch;
+        private bool m_Jump, m_PreviouslyGrounded, m_Jumping, m_IsGrounded, m_Crouch, m_wannaCrouch;
         private bool m_Crouching, justStoppedCrouching;
 
 		private int maxScore;
@@ -133,6 +133,12 @@ namespace UnityStandardAssets.Characters.FirstPerson
         {
             get { return m_Crouching; }
         }
+
+		public bool WannaCrouch
+		{
+			get { return m_wannaCrouch; }
+		}
+
         public bool Running
         {
             get
@@ -144,6 +150,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 #endif
             }
         }
+
 
   
         private void Start()
@@ -181,10 +188,10 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
           //      currPos.z -= 100;
                // cam.transform.position = new Vector3(currPos.x, currPos.y - 10, currPos.z);
-				if(!m_Jumping)
-                	m_Crouch = true;
-
-
+				if (!m_Jumping)
+					m_Crouch = true;
+				else
+					m_wannaCrouch = true;
             }
             if (CrossPlatformInputManager.GetButtonUp("Crouch") && m_Crouch)
             {
@@ -192,6 +199,10 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 m_Crouch = false;
                 justStoppedCrouching = true;
             }
+			if (CrossPlatformInputManager.GetButtonUp("Crouch") && m_wannaCrouch)
+			{
+				m_wannaCrouch = false;
+			}
 			GameObject.FindGameObjectWithTag ("Cat").GetComponent<CatStateMachine>().Noise ();
         }
 
@@ -345,6 +356,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
             if (!m_PreviouslyGrounded && m_IsGrounded && m_Jumping)
             {
                 m_Jumping = false;
+				if (m_wannaCrouch)
+					m_Crouch = true;
             }
         }
 
