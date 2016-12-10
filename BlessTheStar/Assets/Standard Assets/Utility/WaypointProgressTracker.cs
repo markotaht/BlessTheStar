@@ -89,8 +89,11 @@ namespace UnityStandardAssets.Utility
                 // we use lerp as a simple way of smoothing out the speed over time.
                 if (Time.deltaTime > 0)
                 {
-                    speed = Mathf.Lerp(speed, (lastPosition - transform.position).magnitude/Time.deltaTime,
+					speed = Mathf.Lerp(speed, (lastPosition - transform.position).magnitude/Time.deltaTime,
                                        Time.deltaTime);
+					Debug.Log (transform.position);
+					Debug.Log(lastPosition);
+					Debug.Log (lastPosition - transform.position);
                 }
                 target.position =
                     circuit.GetRoutePoint(progressDistance + lookAheadForTargetOffset + lookAheadForTargetFactor*speed)
