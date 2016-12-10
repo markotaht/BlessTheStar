@@ -181,7 +181,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
           //      currPos.z -= 100;
                // cam.transform.position = new Vector3(currPos.x, currPos.y - 10, currPos.z);
-                m_Crouch = true;
+				if(!m_Jumping)
+                	m_Crouch = true;
 
 
             }
