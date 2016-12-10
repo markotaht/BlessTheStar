@@ -191,6 +191,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 m_Crouch = false;
                 justStoppedCrouching = true;
             }
+			GameObject.FindGameObjectWithTag ("Cat").GetComponent<Cat>().Noise ();
         }
 
 
