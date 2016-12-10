@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityStandardAssets.CrossPlatformInput;
+using UnityEngine.UI;
 
 namespace UnityStandardAssets.Characters.FirstPerson
 {
@@ -344,5 +345,38 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 m_Jumping = false;
             }
         }
+
+		void OnTriggerEnter(Collider other) 
+		{
+			if (other.gameObject.CompareTag ("Small Orb"))
+			{
+				other.gameObject.SetActive (false);
+				score += 1;
+				UpdateScoreText ();
+			}
+		else if (other.gameObject.CompareTag ("Medium Orb"))
+			{
+				other.gameObject.SetActive (false);
+				score += 3;
+				UpdateScoreText ();
+			}
+		else if (other.gameObject.CompareTag ("Large Orb"))
+			{
+				other.gameObject.SetActive (false);
+				score += 5;
+				UpdateScoreText ();
+			}
+		}
+
+		void UpdateScoreText()
+		{
+			scoreText.text = "Score: " + score.ToString ();
+		}
+
+		void UpdateTimeText()
+		{
+			timerText.text = "Time: " + Math.Round(time, 2).ToString ();
+		}
+
     }
 }
