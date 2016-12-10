@@ -55,13 +55,14 @@ public class CatStateMachine: MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if (Mathf.Abs((transform.position - patrol [currentpoint].position).magnitude) < 0.5) {
+		if (Mathf.Abs((transform.position - patrol [currentpoint].position).magnitude) < 4) {
 			currentpoint++;
 		}
 		if (currentpoint >= patrol.Length) {
 			currentpoint = 0;
 		}
 		transform.position = Vector3.MoveTowards (transform.position, patrol [currentpoint].position, speed * Time.deltaTime);
+		transform.LookAt(Vector3.MoveTowards (transform.position, patrol [currentpoint].position, speed * Time.deltaTime));
 		Debug.Log (patrol [currentpoint].position);
 		Debug.Log (Vector3.MoveTowards (transform.position, patrol [currentpoint].position, speed * Time.deltaTime));
     }
