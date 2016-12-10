@@ -90,6 +90,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private Vector3 m_GroundContactNormal;
         private bool m_Jump, m_PreviouslyGrounded, m_Jumping, m_IsGrounded;
 
+		private int maxScore;
 		private int score;
 		public Text scoreText;
 		private float time;
@@ -128,6 +129,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
             m_RigidBody = GetComponent<Rigidbody>();
             m_Capsule = GetComponent<CapsuleCollider>();
             mouseLook.Init (transform, cam.transform);
+			maxScore = 27;
 			score = 0;
 			time = 0.0f;
 
@@ -138,8 +140,10 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private void Update()
         {
             RotateView();
-			time += Time.deltaTime;
-			UpdateTimeText ();
+			if (score < maxScore) {
+				time += Time.deltaTime;
+				UpdateTimeText ();
+			}
 
             if (CrossPlatformInputManager.GetButtonDown("Jump") && !m_Jump)
             {
