@@ -19,11 +19,19 @@ public class CatStateMachine: MonoBehaviour {
 	public Transform target;
 	public float speed;
 
+	private Vector3 previousRot;
+
+	public Transform[] patrol;
+	private int currentpoint;
+
 	// Use this for initialization
 	void Start () {
         state = Alertness.SLEEP;
         viewCone = Mathf.Cos(Mathf.PI / 4);
         rigidBody = GetComponent<Rigidbody>();
+		previousRot = new Vector3 (0f, 90f, 0f);
+		transform.position = patrol [0].position;
+		currentpoint = 0;
     }
 
     void Awake()
@@ -47,6 +55,15 @@ public class CatStateMachine: MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+		if (Mathf.Abs((transform.position - patrol [currentpoint].position).magnitude) < 0.5) {
+			currentpoint++;
+		}
+		if (currentpoint >= patrol.Length) {
+			currentpoint = 0;
+		}
+		transform.position = Vector3.MoveTowards (transform.position, patrol [currentpoint].position, speed * Time.deltaTime);
+		Debug.Log (patrol [currentpoint].position);
+		Debug.Log (Vector3.MoveTowards (transform.position, patrol [currentpoint].position, speed * Time.deltaTime));
     }
 
     void FixedUpdate()
@@ -58,13 +75,16 @@ public class CatStateMachine: MonoBehaviour {
 	//	Debug.Log (dist);
 		//rigidBody.AddForce (new Vector3(dist.normalized.x, dist.normalized.y, dist.normalized.z));
 	//	rigidBody.position = transform.position;
+		/*
 		Vector3 dir = target.transform.position - transform.position;
-		Quaternion rot = Quaternion.identity;
-		float rota = Vector2.Dot (new Vector2 (target.transform.position.x, target.transform.position.z), new Vector2 (transform.position.x, transform.position.z));
-		transform.position += dir * (Time.deltaTime * speed);
-		rot.eulerAngles = new Vector3 (90f, rota, 0f);
-		rigidBody.MoveRotation (rot);
-	
+		transform.position += dir.normalized * (Time.deltaTime * speed);
+		float rotation = Vector2.Dot (new Vector2(dir.x,dir.z), new Vector2(previousRot.x,previousRot.z));
+	//	Quaternion rot = Quaternion.AngleAxis (10, Vector3.up);
+	//	rigidBody.MoveRotation (rot);
+		Quaternion rot = transform.rotation;
+		transform.rotation = rot;
+		previousRot = dir;
+	*/
 		if(timer >0)
 			timer -= Time.deltaTime;
 		
