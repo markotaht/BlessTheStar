@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityStandardAssets.CrossPlatformInput;
 using UnityEngine.UI;
@@ -25,76 +26,77 @@ namespace UnityStandardAssets.Characters.FirstPerson
             public KeyCode CrouchKey = KeyCode.X;
             public float JumpForce = 30f;
             public float DoubleJumpForce = 10f;
+            public bool m_Moving = false;
+            
             
             public AnimationCurve SlopeCurveModifier = new AnimationCurve(new Keyframe(-90.0f, 1.0f), new Keyframe(0.0f, 1.0f), new Keyframe(90.0f, 0.0f));
             [HideInInspector] public float CurrentTargetSpeed = 8f;
-
 #if !MOBILE_INPUT
-            private bool m_Running, m_Crouching;
-#endif
+            private bool m_Crouching;
+
+#endif      
+
 
             public void UpdateDesiredTargetSpeed(Vector2 input)
             {
-	            if (input == Vector2.zero) return;
+                if ((Input.GetButtonDown("Horizontal") || Input.GetButtonDown("Vertical"))  && !m_Moving)
+                {
+                    m_Moving = true;
+
+                }
+                else if ((Input.GetButtonUp("Horizontal") || Input.GetButtonUp("Vertical")) && (!Input.GetButtonDown("Horizontal") && !Input.GetButtonDown("Vertical")))
+                {
+                    m_Moving = false;
+                }
+
+                if (input == Vector2.zero) return;
 				if (input.x > 0 || input.x < 0)
 				{
 					//strafe
 					CurrentTargetSpeed = StrafeSpeed;
+			
+
 				}
 				if (input.y < 0)
 				{
 					//backwards
                     
 					CurrentTargetSpeed = BackwardSpeed;
-				}
-				if (input.y > 0)
+                    
+
+                }
+                if (input.y > 0)
 				{
 					//forwards
 					//handled last as if strafing and moving forward at the same time forwards speed should take precedence
 					CurrentTargetSpeed = ForwardSpeed;
-				}
+                    
+
+                }
 #if !MOBILE_INPUT
+
                 if (Input.GetKey(CrouchKey))
                 {
                     CurrentTargetSpeed = CrouchSpeed;
+
+                    m_Moving = true;
                     m_Crouching = true;
-                }
-	            else if (Input.GetKey(RunKey))
-	            {
-		            CurrentTargetSpeed *= RunMultiplier;
-		            m_Running = true;
                 }
 	            else
 	            {
-		            m_Running = false;
                     m_Crouching = false;
                 }
 #endif
             }
 
 #if !MOBILE_INPUT
-            public bool Running
-            {
-                get { return m_Running; }
-            }
+
 #endif
         }
 
-        private void PlayFootStepAudio()
-        {
-            if (!Grounded) // could never maybe make past this ???
-            {
-                return;
-            }
-            m_AudioSource.PlayOneShot(soundSettings.m_Footsteps);
 
+        
 
-        }
-
-        private void PlaySound(AudioClip sound)
-        {
-            m_AudioSource.PlayOneShot(sound);
-        }
 
         [Serializable]
         public class AdvancedSettings
@@ -118,7 +120,26 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
 
          }
-       public Camera cam;
+
+        private void Start()
+        {
+            m_AudioSource = GetComponent<AudioSource>();
+            m_RigidBody = GetComponent<Rigidbody>();
+            m_Capsule = GetComponent<CapsuleCollider>();
+            mouseLook.Init(transform, cam.transform);
+
+            tr = transform;
+
+            m_doubleJumpDone = false;
+            m_canDoubleJump = true; // TODO : change this, if we get the upgrades system working
+            justStoppedCrouching = false;
+
+            maxScore = 27;
+            score = 0;
+            time = 0.0f;
+        }
+        public Camera cam;
+        
         
         public MovementSettings movementSettings = new MovementSettings();
         public MouseLook mouseLook = new MouseLook();
@@ -168,44 +189,32 @@ namespace UnityStandardAssets.Characters.FirstPerson
 			get { return m_wannaCrouch; }
 		}
 
-        public bool Running
+
+        private void PlaySound(AudioClip sound)
         {
-            get
-            {
- #if !MOBILE_INPUT
-				return movementSettings.Running;
-#else
-	            return false;
-#endif
-            }
+            m_AudioSource.PlayOneShot(sound);
         }
-
-
   
-        private void Start()
-        {
-            m_AudioSource = GetComponent<AudioSource>();
-            m_RigidBody = GetComponent<Rigidbody>();
-            m_Capsule = GetComponent<CapsuleCollider>();
-            mouseLook.Init (transform, cam.transform);
-
-            tr = transform;
-
-            m_doubleJumpDone = false;
-            m_canDoubleJump = true; // TODO : change this, if we get the upgrades system working
-            justStoppedCrouching = false;
-
-			maxScore = 27;
-			score = 0;
-			time = 0.0f;
-        }
 
 
         private void Update()
         {
             RotateView();
-
-			if (score < maxScore) {
+            bool notStarted = true;
+            if (movementSettings.m_Moving && notStarted)
+            {
+                m_AudioSource.clip = soundSettings.m_Footsteps;
+                m_AudioSource.Play();
+               // m_AudioSource.loop = true;
+                //    movementSettings.m_Moving = false;
+                //  PlaySound(soundSettings.m_Footsteps);
+                notStarted = false;
+            }
+            else if (!movementSettings.m_Moving)
+            {
+                notStarted = true;
+            }
+            if (score < maxScore) {
 				time += Time.deltaTime;
 				UpdateTimeText ();
 			}
@@ -305,7 +314,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
 
                     transform.localScale -= new Vector3(0,advancedSettings.crouchDistance,0);
-                    m_Capsule.height -= 0.2f;
+                    m_Capsule.height -= advancedSettings.crouchDistance;
                    
                     //            cam.transform.localScale.Set(cam.transform.position.x,cam.transform.position.y-100,cam.transform.position.z);
 
@@ -323,13 +332,14 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 if (justStoppedCrouching)
                 {   
                 //    tr.localScale += new Vector3(0, 0.8f, 0);
-                    m_Capsule.height += 0.2f;
+                    m_Capsule.height += advancedSettings.crouchDistance;
                     transform.localScale += new Vector3(0,advancedSettings.crouchDistance,0);
                     m_Crouching = false;
                     justStoppedCrouching = false;
                 }
                 if (!m_Crouching && !m_Jumping && Mathf.Abs(input.x) < float.Epsilon && Mathf.Abs(input.y) < float.Epsilon && m_RigidBody.velocity.magnitude < 1f)
                 {
+                    movementSettings.m_Moving = false;
                     m_RigidBody.Sleep();
                 }
             }
