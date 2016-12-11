@@ -94,8 +94,14 @@
       <Project>{86025368-D19E-F56A-91ED-1B43D715D762}</Project>
       <Name>BlessTheStar.CSharp.Plugins</Name>
     </ProjectReference>
+    <ProjectReference Include="BlessTheStar.CSharp.csproj">
+      <Project>{58219C02-6081-5C7F-114C-B8C0CCA32EE9}</Project>
+      <Name>BlessTheStar.CSharp</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Editor\BezierCurveEditor.cs" />
+    <Compile Include="Assets\Editor\BezierPointEditor.cs" />
     <Compile Include="Assets\Editor\CrossPlatformInput\CrossPlatformInputInitialize.cs" />
   </ItemGroup>
   <ItemGroup>
