@@ -16,7 +16,6 @@ public class AgentLinkMover : MonoBehaviour {
      NavMeshAgent agent = GetComponent<NavMeshAgent> ();
      agent.autoTraverseOffMeshLink = false;
      while (true) {
-			Debug.Log (agent.isOnOffMeshLink);
        if (agent.isOnOffMeshLink) {
          if (method == OffMeshLinkMoveMethod.NormalSpeed)
            yield return StartCoroutine (NormalSpeed (agent));

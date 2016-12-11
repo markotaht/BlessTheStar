@@ -25,14 +25,22 @@ public class CatStateMachine: MonoBehaviour {
 	private int currentpoint;
 	private float percent;
 
-	public BezierCurve curve;
+	public Transform[] goalPoints;
+	NavMeshAgent agent;
+	private Transform goal;
+
+	private float chillTime = 10f;
+	private bool chilling = false;
 
 	// Use this for initialization
 	void Start () {
         state = Alertness.ALERT;
         viewCone = Mathf.Cos(Mathf.PI / 4);
         rigidBody = GetComponent<Rigidbody>();
+		goal = goalPoints [Random.Range (0, goalPoints.Length -1)];
 
+		agent = GetComponent<NavMeshAgent> ();
+		agent.destination = goal.position; 
 		percent = 0;
     }
 
@@ -57,7 +65,25 @@ public class CatStateMachine: MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		
+		Debug.Log(Vector3.Distance (transform.position, goal.position));
+		Debug.Log (chilling);
+		if (chilling) {
+			chillTime -= Time.deltaTime;
+			Debug.Log (chillTime);
+			if(chillTime <= 0f) {
+				chilling = false;
+				goal = goalPoints [Random.Range (0, goalPoints.Length)];
+				agent.destination = goal.position;
+				chillTime = 10f;
+			}
+			Debug.Log (goal);
+		}
+		else if (!chilling && Vector3.Distance (transform.position, goal.position) < 1f) {
+			//transform.position = goal.position;
+			goal = goalPoints [Random.Range (0, goalPoints.Length)];
+			agent.destination = goal.position;
+			//chilling = true;
+		}
     }
 
     void FixedUpdate()
