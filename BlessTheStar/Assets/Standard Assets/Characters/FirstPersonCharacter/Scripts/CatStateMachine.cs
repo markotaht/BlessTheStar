@@ -63,13 +63,13 @@ public class CatStateMachine: MonoBehaviour {
     void FixedUpdate()
 	{	
 		
-		Debug.Log(percent);
-		transform.position = curve.GetPointAt(percent);
-		percent += Time.deltaTime/20;
-		if(percent >= 1f){
-			percent -= 1.0f;
-		}
-		transform.LookAt (curve.GetPointAt (percent));
+	//	Debug.Log(percent);
+	//	transform.position = curve.GetPointAt(percent);
+	//	percent += Time.deltaTime/20;
+	//	if(percent >= 1f){
+	//		percent -= 1.0f;
+	//	}
+	//	transform.LookAt (curve.GetPointAt (percent));
 	//	Vector3 dist = target.position - transform.position;
 	//	float angle = Vector3.Dot(target.position, transform.position);
 	//	Debug.Log (angle);
@@ -115,10 +115,8 @@ public class CatStateMachine: MonoBehaviour {
 		Vector3 diff = player.position - transform.position;
 		if (Vector3.Dot (diff, viewDir) > viewCone) {
 			RaycastHit hit;
-			Physics.Raycast (transform.position, diff.normalized, out hit,100);
-			Debug.DrawLine (transform.position, hit.point);
+			Physics.Raycast (transform.position, diff.normalized, out hit);
 			if (hit.transform.tag == "Player") {
-				Debug.Log ("Siin");
 				Debug.DrawLine (transform.position, hit.point);
 				return true;
 			}
