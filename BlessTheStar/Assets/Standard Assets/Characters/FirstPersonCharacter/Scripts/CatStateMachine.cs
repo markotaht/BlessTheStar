@@ -59,24 +59,28 @@ public class CatStateMachine: MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		Debug.Log(Vector3.Distance (transform.position, goal.position));
-		Debug.Log (chilling);
-		if (chilling) {
-			chillTime -= Time.deltaTime;
-			Debug.Log (chillTime);
-			if(chillTime <= 0f) {
-				chilling = false;
-				goal = goalPoints [Random.Range (0, goalPoints.Length)];
-				agent.destination = goal.position;
-				chillTime = 10f;
+	//	Debug.Log(Vector3.Distance (transform.position, goal.position));
+	//	Debug.Log (chilling);
+		if (state != Alertness.SLEEP) {
+		//	Debug.Log (chilling);
+			if (chilling) {
+				chillTime -= Time.deltaTime;
+			//	Debug.Log (chillTime <= 0f);
+				if (chillTime <= 0f) {
+					chilling = false;
+					goal = goalPoints [Random.Range (0, goalPoints.Length)];
+					agent.enabled = true;
+					agent.destination = goal.position;
+					chillTime = 10f;
+				}
+				//	Debug.Log (goal);
+			} else if (!chilling && Vector3.Distance (transform.position, goal.position) < 1f) {
+				//transform.position = goal.position;
+				//goal = goalPoints [Random.Range (0, goalPoints.Length)];
+				//agent.destination = goal.position;
+				agent.enabled = false;
+				chilling = true;
 			}
-			Debug.Log (goal);
-		}
-		else if (!chilling && Vector3.Distance (transform.position, goal.position) < 1f) {
-			//transform.position = goal.position;
-			goal = goalPoints [Random.Range (0, goalPoints.Length)];
-			agent.destination = goal.position;
-			//chilling = true;
 		}
     }
 
@@ -90,18 +94,23 @@ public class CatStateMachine: MonoBehaviour {
 		if ((state == Alertness.ALERT || state == Alertness.PATROL || state == Alertness.ATTACK) && canSeePlayer ()) {
 			state = Alertness.ATTACK;
 			goal = player.transform;
+			agent.enabled = true;
+			agent.destination = goal.position;
 			timer = AttackTime;
 		} else if (state == Alertness.ATTACK) {
 			goal = player.transform;
 		}
-		Debug.Log (state);
 		if (timer < 0) {
 			if (state == Alertness.ATTACK) {
 				timer = PatrolTime;
 				state = Alertness.PATROL;
+				goal = goalPoints [Random.Range (0, goalPoints.Length)];
+				agent.enabled = true;
+				agent.destination = goal.position;
 			} else if (state == Alertness.PATROL) {
 				timer = AlertTime;
 				state = Alertness.ALERT;
+				//Mover around/move to some sleep position
 			}// else if(state == Alertness.ALERT){
 		//		state = Alertness.SLEEP;
 		//	}
