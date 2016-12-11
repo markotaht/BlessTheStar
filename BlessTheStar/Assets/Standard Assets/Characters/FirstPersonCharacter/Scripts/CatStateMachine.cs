@@ -32,8 +32,7 @@ public class CatStateMachine: MonoBehaviour {
         state = Alertness.ALERT;
         viewCone = Mathf.Cos(Mathf.PI / 4);
         rigidBody = GetComponent<Rigidbody>();
-		previousRot = new Vector3 (0f, -90f, 0f);
-		currentpoint = 0;
+
 		percent = 0;
     }
 

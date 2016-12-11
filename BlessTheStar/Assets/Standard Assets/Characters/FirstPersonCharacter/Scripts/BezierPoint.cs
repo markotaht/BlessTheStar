@@ -159,6 +159,9 @@ public class BezierPoint : MonoBehaviour{
 	
 	void Update()
 	{
+		Debug.Log (_curve.dirty);
+		Debug.Log (transform.position);
+		Debug.Log (lastPosition);
 		if(!_curve.dirty && transform.position != lastPosition)
 		{
 			_curve.SetDirty();
