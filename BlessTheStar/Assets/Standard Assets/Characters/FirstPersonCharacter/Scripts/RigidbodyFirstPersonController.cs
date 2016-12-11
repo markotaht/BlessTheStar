@@ -19,11 +19,12 @@ namespace UnityStandardAssets.Characters.FirstPerson
             public float ForwardSpeed = 8.0f;   // Speed when walking forward
             public float BackwardSpeed = 4.0f;  // Speed when walking backwards
             public float StrafeSpeed = 4.0f;    // Speed when walking sideways
-            public float RunMultiplier = 2.0f;   // Speed when sprinting
+            public float RunMultiplier = 2.0f;   // Speed when sprinting, we probably wont need this
             public float CrouchSpeed = 3.0f; // Crouch walk speed
 	        public KeyCode RunKey = KeyCode.LeftShift;
             public KeyCode CrouchKey = KeyCode.X;
             public float JumpForce = 30f;
+            public float DoubleJumpForce = 10f;
             
             public AnimationCurve SlopeCurveModifier = new AnimationCurve(new Keyframe(-90.0f, 1.0f), new Keyframe(0.0f, 1.0f), new Keyframe(90.0f, 0.0f));
             [HideInInspector] public float CurrentTargetSpeed = 8f;
@@ -81,7 +82,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private void PlayFootStepAudio()
         {
-            if (!Grounded)
+            if (!Grounded) // could never maybe make past this ???
             {
                 return;
             }
@@ -94,13 +95,14 @@ namespace UnityStandardAssets.Characters.FirstPerson
         {
             m_AudioSource.PlayOneShot(sound);
         }
+
         [Serializable]
         public class AdvancedSettings
         {
             public float groundCheckDistance = 0.01f; // distance for checking if the controller is grounded ( 0.01f seems to work best for this )
             public float stickToGroundHelperDistance = 0.1f; // stops the character
-            public float slowDownRate = 20f; // rate at which the controller comes to a stop when there is no input
-            public float crouchDistance = 0.2f; // default crouch length
+            public float slowDownRate = 80f; // rate at which the controller comes to a stop when there is no input
+            public float crouchDistance = 0.2f; // default crouch depth/how low the character crouches
             public bool airControl = true; // can the user control the direction that is being moved in the air
             [Tooltip("set it to 0.1 or more if you get stuck in wall")]
             public float shellOffset = 0.1f; //reduce the radius by that ratio to avoid getting stuck in wall (a value of 0.1f is nice)
@@ -112,9 +114,10 @@ namespace UnityStandardAssets.Characters.FirstPerson
              public AudioClip m_Footsteps;
              public AudioClip m_Jumping;
              public AudioClip m_Landing;
-             
+             public AudioClip m_DoubleJump;
 
-        }
+
+         }
        public Camera cam;
         
         public MovementSettings movementSettings = new MovementSettings();
@@ -128,7 +131,11 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private float m_YRotation;
         private Vector3 m_GroundContactNormal;
         private bool m_Jump, m_PreviouslyGrounded, m_Jumping, m_IsGrounded, m_Crouch, m_wannaCrouch;
-        private bool m_Crouching, justStoppedCrouching;
+        private bool m_Crouching, justStoppedCrouching, m_doubleJumpDone, m_canDoubleJump;
+        private bool doubleJumpNow;
+        // doublejumpdone checks if the player has already doublejumped, or does he still have a second jump left
+        // canDoubleJump shows if the player has already gotten the doublejump upgrade.
+        // doubleJumpNow indicates the player wants to doublejump and it will be checked on the next update.
 
 		private int maxScore;
 		private int score;
@@ -183,7 +190,9 @@ namespace UnityStandardAssets.Characters.FirstPerson
             mouseLook.Init (transform, cam.transform);
 
             tr = transform;
-            
+
+            m_doubleJumpDone = false;
+            m_canDoubleJump = true; // TODO : change this, if we get the upgrades system working
             justStoppedCrouching = false;
 
 			maxScore = 27;
@@ -204,7 +213,15 @@ namespace UnityStandardAssets.Characters.FirstPerson
             if (CrossPlatformInputManager.GetButtonDown("Jump") && !m_Jump)
             {
                 m_Jump = true;
-                m_AudioSource.PlayOneShot(soundSettings.m_Jumping);
+                if (!m_Jumping)
+                {
+          
+                    m_AudioSource.PlayOneShot(soundSettings.m_Jumping);
+                }
+                else if (m_Jumping && !Grounded && m_canDoubleJump && !m_doubleJumpDone)
+                {
+                    doubleJumpNow = true;
+                }
             }
             if(CrossPlatformInputManager.GetButtonDown("Crouch") && !m_Crouch)
             {
@@ -253,6 +270,24 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 }
             }
 
+            if (doubleJumpNow && !m_doubleJumpDone && m_canDoubleJump && !m_IsGrounded)
+            {
+                
+                m_RigidBody.drag = 0f;
+                // m_RigidBody.velocity = new Vector3(m_RigidBody.velocity.x, 0f, m_RigidBody.velocity.z);
+         //       m_RigidBody.velocity.Set(m_RigidBody.velocity.x,0f,m_RigidBody.velocity.z );
+
+                
+                
+                
+           //     m_RigidBody.AddForce(Vector3.up * movementSettings.DoubleJumpForce);
+           // TODO : implement doublejump direction change
+                m_RigidBody.AddForce(new Vector3(0f, movementSettings.DoubleJumpForce, 0f), ForceMode.VelocityChange);
+                PlaySound(soundSettings.m_DoubleJump);
+                m_Jumping = true;
+                m_doubleJumpDone = true;
+                doubleJumpNow = false;
+            }
             if (m_IsGrounded)
             {
                 m_RigidBody.drag = 5f;
@@ -264,6 +299,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
                     m_RigidBody.AddForce(new Vector3(0f, movementSettings.JumpForce, 0f), ForceMode.Impulse);
                     m_Jumping = true;
                 }
+
                 if (m_Crouch && !m_Crouching)
                 {
 
@@ -383,15 +419,18 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
                 PlaySound(soundSettings.m_Landing);
                 m_Jumping = false;
-				if (m_wannaCrouch)
-					m_Crouch = true;
+                if (m_wannaCrouch)
+                {
+                    m_Crouch = true;
+                }
+                m_doubleJumpDone = false;
+
             }
         }
 
 		void OnTriggerEnter(Collider other)
 		{
 
-       
 		    AudioSource otherSource = other.GetComponent<AudioSource>();
 			if (other.gameObject.CompareTag ("Small Orb"))
 			{
