@@ -22,7 +22,6 @@ public class CatStateMachine: MonoBehaviour {
 
 	private Vector3 previousRot;
 
-	public Transform[] patrol;
 	private int currentpoint;
 	private float percent;
 
@@ -30,12 +29,10 @@ public class CatStateMachine: MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        state = Alertness.SLEEP;
+        state = Alertness.ALERT;
         viewCone = Mathf.Cos(Mathf.PI / 4);
         rigidBody = GetComponent<Rigidbody>();
-		previousRot = new Vector3 (0f, -90f, 0f);
-		transform.position = patrol [0].position;
-		currentpoint = 0;
+
 		percent = 0;
     }
 
@@ -94,7 +91,7 @@ public class CatStateMachine: MonoBehaviour {
 			timer -= Time.deltaTime;
 		
 		viewDir = Vector3.forward;
-		if ((state == Alertness.ALERT || state == Alertness.PATROL) && canSeePlayer())
+		if ((state == Alertness.ALERT || state == Alertness.PATROL || state == Alertness.ATTACK) && canSeePlayer())
         {
             state = Alertness.ATTACK;
 			timer = AttackTime;
@@ -107,16 +104,27 @@ public class CatStateMachine: MonoBehaviour {
 			} else if (state == Alertness.PATROL) {
 				timer = AlertTime;
 				state = Alertness.ALERT;
-			} else if(state == Alertness.ALERT){
-				state = Alertness.SLEEP;
-			}
+			}// else if(state == Alertness.ALERT){
+		//		state = Alertness.SLEEP;
+		//	}
 		}
     }
 
     bool canSeePlayer()
     {
 		Vector3 diff = player.position - transform.position;
-		return Vector3.Dot(diff, viewDir) > viewCone;
+		if (Vector3.Dot (diff, viewDir) > viewCone) {
+			RaycastHit hit;
+			Physics.Raycast (transform.position, diff.normalized, out hit,100);
+			Debug.DrawLine (transform.position, hit.point);
+			if (hit.transform.tag == "Player") {
+				Debug.Log ("Siin");
+				Debug.DrawLine (transform.position, hit.point);
+				return true;
+			}
+			
+		}
+		return false;
     }
 
 	public void SetTarget(Transform target)
