@@ -121,6 +121,39 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
          }
 
+        [Serializable]
+        public class Buffs
+        {
+            public bool m_PDoubleJump;
+            public bool m_BSpeedBoost;
+            public bool m_BCloudJump;
+            public bool m_BFeatherFalling;
+            public float speedBoostTimer = 30f;
+            public float cloudJumpTimer = 30f;
+            public float featherFallingTimer = 30f;
+
+            public float speedBoostSpeedIncrease = 1.5f;
+            // IMPLEMENT FEATHER FALLING STUUFJOWA
+
+        }
+
+        void resetSpeedBoost()
+        {
+            buffs.speedBoostTimer = 30f;
+
+        }
+
+        void resetCloudJUmp()
+        {
+            buffs.cloudJumpTimer = 30f;
+        }
+
+        void resetFeatherFalling()
+        {
+            buffs.featherFallingTimer = 30f;
+        }
+
+
         private void Start()
         {
             m_AudioSource = GetComponent<AudioSource>();
@@ -131,7 +164,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
             tr = transform;
 
             m_doubleJumpDone = false;
-            m_canDoubleJump = true; // TODO : change this, if we get the upgrades system working
             justStoppedCrouching = false;
 
             maxScore = 27;
@@ -145,6 +177,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         public MouseLook mouseLook = new MouseLook();
         public AdvancedSettings advancedSettings = new AdvancedSettings();
         public SoundSettings soundSettings = new SoundSettings();
+        public Buffs buffs = new Buffs();
 
 
         private Rigidbody m_RigidBody;
@@ -152,10 +185,9 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private float m_YRotation;
         private Vector3 m_GroundContactNormal;
         private bool m_Jump, m_PreviouslyGrounded, m_Jumping, m_IsGrounded, m_Crouch, m_wannaCrouch;
-        private bool m_Crouching, justStoppedCrouching, m_doubleJumpDone, m_canDoubleJump;
+        private bool m_Crouching, justStoppedCrouching, m_doubleJumpDone;
         private bool doubleJumpNow;
         // doublejumpdone checks if the player has already doublejumped, or does he still have a second jump left
-        // canDoubleJump shows if the player has already gotten the doublejump upgrade.
         // doubleJumpNow indicates the player wants to doublejump and it will be checked on the next update.
 
 		private int maxScore;
@@ -194,21 +226,25 @@ namespace UnityStandardAssets.Characters.FirstPerson
         {
             m_AudioSource.PlayOneShot(sound);
         }
-  
 
 
+
+        bool notStarted = true;
         private void Update()
         {
             RotateView();
-            bool notStarted = true;
             if (movementSettings.m_Moving && notStarted)
             {
                 m_AudioSource.clip = soundSettings.m_Footsteps;
                 m_AudioSource.Play();
-               // m_AudioSource.loop = true;
+                // m_AudioSource.loop = true;
                 //    movementSettings.m_Moving = false;
                 //  PlaySound(soundSettings.m_Footsteps);
-                notStarted = false;
+                if (m_AudioSource.isPlaying)
+                {
+                    notStarted = false;
+                }
+                
             }
             else if (!movementSettings.m_Moving)
             {
@@ -227,7 +263,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
           
                     m_AudioSource.PlayOneShot(soundSettings.m_Jumping);
                 }
-                else if (m_Jumping && !Grounded && m_canDoubleJump && !m_doubleJumpDone)
+                else if (m_Jumping && !Grounded && buffs.m_PDoubleJump && !m_doubleJumpDone)
                 {
                     doubleJumpNow = true;
                 }
@@ -254,9 +290,53 @@ namespace UnityStandardAssets.Characters.FirstPerson
 			{
 				m_wannaCrouch = false;
 			}
+            if (buffs.m_BCloudJump)
+            {
+                if (buffs.cloudJumpTimer > 0)
+                {
+                    
+                    buffs.cloudJumpTimer -= Time.deltaTime;
+                }
+                else
+                {
+                    buffs.m_BCloudJump = false;
+                    resetCloudJUmp();
+                    
+                }
+            }
+
+            if (buffs.m_BFeatherFalling)
+            {
+                if (buffs.featherFallingTimer > 0)
+                {
+                    buffs.featherFallingTimer -= Time.deltaTime;
+                }
+                else
+                {
+                    buffs.m_BFeatherFalling = false;
+                    resetFeatherFalling();
+                }
+                
+            }
+
+            if (buffs.m_BSpeedBoost)
+            {
+
+                if (buffs.speedBoostTimer > 0)
+                {
+                    
+                    buffs.speedBoostTimer -= Time.deltaTime;
+                }
+                else
+                {
+                    buffs.m_BSpeedBoost = false;
+                    resetSpeedBoost();
+                }
+            }
 			GameObject.FindGameObjectWithTag ("Cat").GetComponent<CatStateMachine>().Noise ();
         }
 
+            
 
         private void FixedUpdate()
         {
@@ -279,7 +359,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 }
             }
 
-            if (doubleJumpNow && !m_doubleJumpDone && m_canDoubleJump && !m_IsGrounded)
+            if (doubleJumpNow && !m_doubleJumpDone && buffs.m_PDoubleJump && !m_IsGrounded)
             {
                 
                 m_RigidBody.drag = 0f;
@@ -457,12 +537,30 @@ namespace UnityStandardAssets.Characters.FirstPerson
 				score += 3;
 				UpdateScoreText ();
 			}
-		else if (other.gameObject.CompareTag ("Large Orb"))
+		else if (other.gameObject.CompareTag ("Large Orb")) // POWERUP + BUFF
 			{
+
+			    if (other.gameObject.name == "DoubleJump")
+			    {
+                    
+			        buffs.m_PDoubleJump = true;
+                   
+			    }
+                else if(other.gameObject.name == "FeatherFalling")
+			    {
+			        buffs.m_BFeatherFalling = true;
+			    }
+                else if (other.gameObject.name == "SpeedBoost")
+                {
+                    buffs.m_BSpeedBoost = true;
+                    movementSettings.ForwardSpeed = movementSettings.ForwardSpeed*buffs.speedBoostSpeedIncrease;
+                }
+                else if (other.gameObject.name == "CloudJump")
+                {
+                    buffs.m_BCloudJump = true;
+                }
                 m_AudioSource.PlayOneShot(otherSource.clip);
                 other.gameObject.SetActive (false);
-				score += 5;
-				UpdateScoreText ();
 			}
 		}
 
