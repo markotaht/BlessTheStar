@@ -20,11 +20,6 @@ public class CatStateMachine: MonoBehaviour {
 	public Transform target;
 	public float speed;
 
-	private Vector3 previousRot;
-
-	private int currentpoint;
-	private float percent;
-
 	public Transform[] goalPoints;
 	NavMeshAgent agent;
 	private Transform goal;
@@ -41,7 +36,6 @@ public class CatStateMachine: MonoBehaviour {
 
 		agent = GetComponent<NavMeshAgent> ();
 		agent.destination = goal.position; 
-		percent = 0;
     }
 
     void Awake()
@@ -89,39 +83,17 @@ public class CatStateMachine: MonoBehaviour {
     void FixedUpdate()
 	{	
 		
-	//	Debug.Log(percent);
-	//	transform.position = curve.GetPointAt(percent);
-	//	percent += Time.deltaTime/20;
-	//	if(percent >= 1f){
-	//		percent -= 1.0f;
-	//	}
-	//	transform.LookAt (curve.GetPointAt (percent));
-	//	Vector3 dist = target.position - transform.position;
-	//	float angle = Vector3.Dot(target.position, transform.position);
-	//	Debug.Log (angle);
-	//	dist = Quaternion.AngleAxis(-angle,Vector3.up) * dist;
-	//	Debug.Log (dist);
-		//rigidBody.AddForce (new Vector3(dist.normalized.x, dist.normalized.y, dist.normalized.z));
-	//	rigidBody.position = transform.position;
-		/*
-		Vector3 dir = target.transform.position - transform.position;
-		transform.position += dir.normalized * (Time.deltaTime * speed);
-		float rotation = Vector2.Dot (new Vector2(dir.x,dir.z), new Vector2(previousRot.x,previousRot.z));
-	//	Quaternion rot = Quaternion.AngleAxis (10, Vector3.up);
-	//	rigidBody.MoveRotation (rot);
-		Quaternion rot = transform.rotation;
-		transform.rotation = rot;
-		previousRot = dir;
-	*/
 		if(timer >0)
 			timer -= Time.deltaTime;
 		
-		viewDir = Vector3.forward;
-		if ((state == Alertness.ALERT || state == Alertness.PATROL || state == Alertness.ATTACK) && canSeePlayer())
-        {
-            state = Alertness.ATTACK;
+		viewDir = transform.rotation * Vector3.forward;
+		if ((state == Alertness.ALERT || state == Alertness.PATROL || state == Alertness.ATTACK) && canSeePlayer ()) {
+			state = Alertness.ATTACK;
+			goal = player.transform;
 			timer = AttackTime;
-        }
+		} else if (state == Alertness.ATTACK) {
+			goal = player.transform;
+		}
 		Debug.Log (state);
 		if (timer < 0) {
 			if (state == Alertness.ATTACK) {
@@ -139,7 +111,7 @@ public class CatStateMachine: MonoBehaviour {
     bool canSeePlayer()
     {
 		Vector3 diff = player.position - transform.position;
-		if (Vector3.Dot (diff, viewDir) > viewCone) {
+		if (Vector3.Dot (diff.normalized, viewDir) > viewCone) {
 			RaycastHit hit;
 			Physics.Raycast (transform.position, diff.normalized, out hit);
 			if (hit.transform.tag == "Player") {
