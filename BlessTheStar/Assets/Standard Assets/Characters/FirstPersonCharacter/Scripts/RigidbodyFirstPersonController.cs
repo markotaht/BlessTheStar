@@ -11,10 +11,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
     {
         private Transform tr;
-        
-        private Vector3 m_StandingPos;
-        private Vector3 m_CrouchingPos;
-        private Vector3 m_CurrentSpeed;
+        private AudioSource m_AudioSource;
+
         [Serializable]
         public class MovementSettings
         {
@@ -45,6 +43,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 				if (input.y < 0)
 				{
 					//backwards
+                    
 					CurrentTargetSpeed = BackwardSpeed;
 				}
 				if (input.y > 0)
@@ -80,7 +79,21 @@ namespace UnityStandardAssets.Characters.FirstPerson
 #endif
         }
 
+        private void PlayFootStepAudio()
+        {
+            if (!Grounded)
+            {
+                return;
+            }
+            m_AudioSource.PlayOneShot(soundSettings.m_Footsteps);
 
+
+        }
+
+        private void PlaySound(AudioClip sound)
+        {
+            m_AudioSource.PlayOneShot(sound);
+        }
         [Serializable]
         public class AdvancedSettings
         {
@@ -93,12 +106,21 @@ namespace UnityStandardAssets.Characters.FirstPerson
             public float shellOffset = 0.1f; //reduce the radius by that ratio to avoid getting stuck in wall (a value of 0.1f is nice)
         }
 
+         [Serializable]
+         public class SoundSettings
+         {
+             public AudioClip m_Footsteps;
+             public AudioClip m_Jumping;
+             public AudioClip m_Landing;
+             
 
-        public Camera cam;
+        }
+       public Camera cam;
         
         public MovementSettings movementSettings = new MovementSettings();
         public MouseLook mouseLook = new MouseLook();
         public AdvancedSettings advancedSettings = new AdvancedSettings();
+        public SoundSettings soundSettings = new SoundSettings();
 
 
         private Rigidbody m_RigidBody;
@@ -155,6 +177,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
   
         private void Start()
         {
+            m_AudioSource = GetComponent<AudioSource>();
             m_RigidBody = GetComponent<Rigidbody>();
             m_Capsule = GetComponent<CapsuleCollider>();
             mouseLook.Init (transform, cam.transform);
@@ -181,9 +204,11 @@ namespace UnityStandardAssets.Characters.FirstPerson
             if (CrossPlatformInputManager.GetButtonDown("Jump") && !m_Jump)
             {
                 m_Jump = true;
+                m_AudioSource.PlayOneShot(soundSettings.m_Jumping);
             }
             if(CrossPlatformInputManager.GetButtonDown("Crouch") && !m_Crouch)
             {
+                
            //     Vector3 currPos = cam.transform.position;
 
           //      currPos.z -= 100;
@@ -355,29 +380,38 @@ namespace UnityStandardAssets.Characters.FirstPerson
             }
             if (!m_PreviouslyGrounded && m_IsGrounded && m_Jumping)
             {
+
+                PlaySound(soundSettings.m_Landing);
                 m_Jumping = false;
 				if (m_wannaCrouch)
 					m_Crouch = true;
             }
         }
 
-		void OnTriggerEnter(Collider other) 
+		void OnTriggerEnter(Collider other)
 		{
+
+       
+		    AudioSource otherSource = other.GetComponent<AudioSource>();
 			if (other.gameObject.CompareTag ("Small Orb"))
 			{
+                m_AudioSource.PlayOneShot(otherSource.clip);
 				other.gameObject.SetActive (false);
 				score += 1;
 				UpdateScoreText ();
 			}
 		else if (other.gameObject.CompareTag ("Medium Orb"))
 			{
-				other.gameObject.SetActive (false);
+
+                m_AudioSource.PlayOneShot(otherSource.clip);
+                other.gameObject.SetActive (false);
 				score += 3;
 				UpdateScoreText ();
 			}
 		else if (other.gameObject.CompareTag ("Large Orb"))
 			{
-				other.gameObject.SetActive (false);
+                m_AudioSource.PlayOneShot(otherSource.clip);
+                other.gameObject.SetActive (false);
 				score += 5;
 				UpdateScoreText ();
 			}

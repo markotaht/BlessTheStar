@@ -25,9 +25,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         [SerializeField] private LerpControlledBob m_JumpBob = new LerpControlledBob();
 
         [SerializeField] private float m_StepInterval;
-        [SerializeField] public AudioClip m_FootStepSound;    // an array of footstep sounds that will be randomly selected from.
-        [SerializeField] public AudioClip m_JumpSound;           // the sound played when character leaves the ground.
-        [SerializeField] public AudioClip m_LandSound ;           // the sound played when character touches back on ground.
+           // the sound played when character touches back on ground.
 
         private Camera m_Camera;
         private bool m_Jump;
@@ -82,7 +80,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
             if (!m_PreviouslyGrounded && m_CharacterController.isGrounded)
             {
                 StartCoroutine(m_JumpBob.DoBobCycle());
-                PlayLandingSound();
+                
                 m_MoveDir.y = 0f;
                 m_Jumping = false;
             }
@@ -95,12 +93,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
         }
 
 
-        private void PlayLandingSound()
-        {
-            m_AudioSource.clip = m_LandSound;
-            m_AudioSource.Play();
-            m_NextStep = m_StepCycle + .5f;
-        }
 
 
         private void FixedUpdate()
@@ -131,7 +123,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 if (m_Jump)
                 {
                     m_MoveDir.y = m_JumpSpeed;
-                    PlayJumpSound();
                     m_Jump = false;
                     m_Jumping = true;
                 }
@@ -149,12 +140,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         }
 
 
-        private void PlayJumpSound()
-        {
-        //    m_AudioSource.clip = m_JumpSound;
-            m_AudioSource.PlayOneShot(m_JumpSound);
-            
-        }
+  
 
 
         private void ProgressStepCycle(float speed)
@@ -171,8 +157,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
             }
 
             m_NextStep = m_StepCycle + m_StepInterval;
-
-            PlayFootStepAudio();
+            
         }
 
 
@@ -183,7 +168,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 return;
             }
             
-            m_AudioSource.PlayOneShot(m_FootStepSound);
             // pick & play a random footstep sound from the array,
             // excluding sound at index 0
   //          int n = Random.Range(1, m_FootstepSounds.Length);
