@@ -2,6 +2,7 @@
 using System.Collections;
 using UnityStandardAssets.Utility;
 
+
 [RequireComponent(typeof(Rigidbody))]
 public class CatStateMachine: MonoBehaviour {
 
@@ -23,15 +24,19 @@ public class CatStateMachine: MonoBehaviour {
 
 	public Transform[] patrol;
 	private int currentpoint;
+	private float percent;
+
+	public BezierCurve curve;
 
 	// Use this for initialization
 	void Start () {
         state = Alertness.SLEEP;
         viewCone = Mathf.Cos(Mathf.PI / 4);
         rigidBody = GetComponent<Rigidbody>();
-		previousRot = new Vector3 (0f, 90f, 0f);
+		previousRot = new Vector3 (0f, -90f, 0f);
 		transform.position = patrol [0].position;
 		currentpoint = 0;
+		percent = 0;
     }
 
     void Awake()
@@ -55,20 +60,19 @@ public class CatStateMachine: MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if (Mathf.Abs((transform.position - patrol [currentpoint].position).magnitude) < 4) {
-			currentpoint++;
-		}
-		if (currentpoint >= patrol.Length) {
-			currentpoint = 0;
-		}
-		transform.position = Vector3.MoveTowards (transform.position, patrol [currentpoint].position, speed * Time.deltaTime);
-		transform.LookAt(Vector3.MoveTowards (transform.position, patrol [currentpoint].position, speed * Time.deltaTime));
-		Debug.Log (patrol [currentpoint].position);
-		Debug.Log (Vector3.MoveTowards (transform.position, patrol [currentpoint].position, speed * Time.deltaTime));
+		
     }
 
     void FixedUpdate()
-    {	
+	{	
+		
+		Debug.Log(percent);
+		transform.position = curve.GetPointAt(percent);
+		percent += Time.deltaTime/20;
+		if(percent >= 1f){
+			percent -= 1.0f;
+		}
+		transform.LookAt (curve.GetPointAt (percent));
 	//	Vector3 dist = target.position - transform.position;
 	//	float angle = Vector3.Dot(target.position, transform.position);
 	//	Debug.Log (angle);
