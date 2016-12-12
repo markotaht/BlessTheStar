@@ -35,7 +35,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
 #endif      
 
-
             public void UpdateDesiredTargetSpeed(Vector2 input)
             {
                 if ((Input.GetButtonDown("Horizontal") || Input.GetButtonDown("Vertical"))  && !m_Moving)
@@ -160,6 +159,19 @@ namespace UnityStandardAssets.Characters.FirstPerson
             m_Capsule = GetComponent<CapsuleCollider>();
             mouseLook.Init(transform, cam.transform);
 
+			tips = new string[] {
+				"COLLECT ORBS FOR POINTS AND BUFFS!",
+				"AVOID THE CAT!",
+				"AFTER COLLECTING AS MANY ORBS AS POSSIBLE, BRING THEM TO THE TREE'S STAR",
+				"'MAGIC' BUTTON TO CROUCH"
+			};
+
+			PlayerPrefs.SetInt ("orbTip", 1);
+			PlayerPrefs.SetInt ("catTip", 1);
+			PlayerPrefs.SetInt ("starTip", 1);
+			PlayerPrefs.SetInt ("crouchTip", 1);
+			tipText.enabled = false;
+
             tr = transform;
 
             m_doubleJumpDone = false;
@@ -203,6 +215,11 @@ namespace UnityStandardAssets.Characters.FirstPerson
 		private float time;
 		public Text timerText;
 
+		public Text tipText;
+		private float tipTimer;
+
+		private string[] tips;
+
         public Vector3 Velocity
         {
             get { return m_RigidBody.velocity; }
@@ -237,9 +254,20 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
 
         bool notStarted = true;
+
+
+
         private void Update()
         {
-            RotateView();
+			if (tipTimer > 0) {
+				tipTimer -= Time.deltaTime;
+				if (tipTimer <= 0) {
+					tipTimer = 0;
+					tipText.enabled = false;
+				}	
+			}
+
+			RotateView();
             if (movementSettings.m_Moving && notStarted)
             {
                 m_AudioSource.clip = soundSettings.m_Footsteps;
@@ -578,6 +606,13 @@ namespace UnityStandardAssets.Characters.FirstPerson
 				other.gameObject.SetActive (false);
 				score += 1;
 				UpdateScoreText ();
+				if (PlayerPrefs.GetInt ("orbTip") == 1) {
+					PlayerPrefs.SetInt ("orbTip", 0);
+					tipText.enabled = true;
+					Debug.Log (tips [0]);
+					tipText.text = tips[0];
+					tipTimer = 5;
+				}
 			}
 		else if (other.gameObject.CompareTag ("Medium Orb"))
 			{
@@ -586,9 +621,23 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 other.gameObject.SetActive (false);
 				score += 3;
 				UpdateScoreText ();
+				if (PlayerPrefs.GetInt ("orbTip") == 1) {
+					PlayerPrefs.SetInt ("orbTip", 0);
+					tipText.enabled = true;
+					tipText.text = tips[0];
+					tipTimer = 5;
+				}
 			}
 		else if (other.gameObject.CompareTag ("Large Orb")) // POWERUP + BUFF
 			{
+
+				if (PlayerPrefs.GetInt ("orbTip") == 1) {
+					PlayerPrefs.SetInt ("orbTip", 0);
+					tipText.enabled = true;
+					tipText.text = tips[0];
+					tipTimer = 5;
+				}
+
 
 			    if (other.gameObject.name == "DoubleJump")
 			    {
@@ -611,6 +660,33 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 }
                 m_AudioSource.PlayOneShot(otherSource.clip);
                 other.gameObject.SetActive (false);
+			}else if (other.gameObject.CompareTag ("Tip2"))
+			{
+				other.gameObject.SetActive (false);
+				if (PlayerPrefs.GetInt ("catTip") == 1) {
+					PlayerPrefs.SetInt ("catTip", 0);
+					tipText.enabled = true;
+					tipText.text = tips[1];
+					tipTimer = 3;
+				}
+			}else if (other.gameObject.CompareTag ("Tip3"))
+			{
+				other.gameObject.SetActive (false);
+				if (PlayerPrefs.GetInt ("starTip") == 1) {
+					PlayerPrefs.SetInt ("starTip", 0);
+					tipText.enabled = true;
+					tipText.text = tips[2];
+					tipTimer = 5;
+				}
+			}else if (other.gameObject.CompareTag ("Tip4"))
+			{
+				other.gameObject.SetActive (false);
+				if (PlayerPrefs.GetInt ("crouchTip") == 1) {
+					PlayerPrefs.SetInt ("crouchTip", 0);
+					tipText.enabled = true;
+					tipText.text = tips[3];
+					tipTimer = 4;
+				}
 			}
 		}
 
