@@ -171,7 +171,15 @@ namespace UnityStandardAssets.Characters.FirstPerson
         }
         public Camera cam;
         
-        
+		public int getScore(){
+
+			return score;
+		}
+
+		public float getTime(){
+			return time;
+		}
+
         public MovementSettings movementSettings = new MovementSettings();
         public MouseLook mouseLook = new MouseLook();
         public AdvancedSettings advancedSettings = new AdvancedSettings();
