@@ -340,7 +340,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
                     resetSpeedBoost();
                 }
             }
-			GameObject.FindGameObjectWithTag ("Cat").GetComponent<CatStateMachine>().Noise ();
         }
 
             
