@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityStandardAssets.CrossPlatformInput;
 using UnityEngine.UI;
 
@@ -12,6 +13,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
     {
         private Transform tr;
         private AudioSource m_AudioSource;
+
+
 
         [Serializable]
         public class MovementSettings
@@ -116,6 +119,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
              public AudioClip m_Jumping;
              public AudioClip m_Landing;
              public AudioClip m_DoubleJump;
+             public AudioClip m_CloudJump;
 
 
          }
@@ -155,6 +159,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private void Start()
         {
+
             m_AudioSource = GetComponent<AudioSource>();
             m_RigidBody = GetComponent<Rigidbody>();
             m_Capsule = GetComponent<CapsuleCollider>();
@@ -193,7 +198,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private Vector3 m_GroundContactNormal;
         private bool m_Jump, m_PreviouslyGrounded, m_Jumping, m_IsGrounded, m_Crouch, m_wannaCrouch;
         private bool m_Crouching, justStoppedCrouching, m_doubleJumpDone;
-        private bool doubleJumpNow;
+        private bool doubleJumpNow, cloudJumpNow;
         // doublejumpdone checks if the player has already doublejumped, or does he still have a second jump left
         // doubleJumpNow indicates the player wants to doublejump and it will be checked on the next update.
 
@@ -202,6 +207,9 @@ namespace UnityStandardAssets.Characters.FirstPerson
 		public Text scoreText;
 		private float time;
 		public Text timerText;
+        public Text cloudJumpText;
+        public Text featherFallingText;
+        public Text speedBoostText;
 
         public Vector3 Velocity
         {
@@ -236,6 +244,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
 
 
+        
         bool notStarted = true;
         private void Update()
         {
@@ -274,6 +283,10 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 {
                     doubleJumpNow = true;
                 }
+                else if (m_Jumping && !Grounded && buffs.m_PDoubleJump && buffs.m_BCloudJump && m_doubleJumpDone)
+                {
+                    cloudJumpNow = true;
+                }
             }
             if(CrossPlatformInputManager.GetButtonDown("Crouch") && !m_Crouch)
             {
@@ -299,16 +312,20 @@ namespace UnityStandardAssets.Characters.FirstPerson
 			}
             if (buffs.m_BCloudJump)
             {
+
                 if (buffs.cloudJumpTimer > 0)
                 {
-                    
+
                     buffs.cloudJumpTimer -= Time.deltaTime;
+                    UpdateCloudJump(buffs.cloudJumpTimer);
                 }
                 else
                 {
                     buffs.m_BCloudJump = false;
                     resetCloudJUmp();
-                    
+                    cloudJ.SetActive(true);
+                    cloudJumpText.text = "-";
+
                 }
             }
 
@@ -316,28 +333,39 @@ namespace UnityStandardAssets.Characters.FirstPerson
             {
                 if (buffs.featherFallingTimer > 0)
                 {
+
                     buffs.featherFallingTimer -= Time.deltaTime;
+
+                    UpdateFeatherFalling(buffs.featherFallingTimer);
                 }
                 else
                 {
                     buffs.m_BFeatherFalling = false;
                     resetFeatherFalling();
+                    featherFallingText.text = "";
+                    featherF.SetActive(true);
+
                 }
                 
             }
+            // TAIMERID EI TÖÖTA 
 
             if (buffs.m_BSpeedBoost)
             {
 
                 if (buffs.speedBoostTimer > 0)
                 {
-                    
+
                     buffs.speedBoostTimer -= Time.deltaTime;
+                    UpdateSpeedBoost(buffs.speedBoostTimer);
                 }
                 else
                 {
                     buffs.m_BSpeedBoost = false;
                     resetSpeedBoost();
+                    speedB.SetActive(true);
+                    speedBoostText.text = "";
+
                 }
             }
 			GameObject.FindGameObjectWithTag ("Cat").GetComponent<CatStateMachine>().Noise ();
@@ -421,12 +449,24 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 
                 
            //     m_RigidBody.AddForce(Vector3.up * movementSettings.DoubleJumpForce);
-           // TODO : implement doublejump direction change
+           // TODO : implement doublejump direction change NOPE
                 m_RigidBody.AddForce(new Vector3(0f, movementSettings.DoubleJumpForce, 0f), ForceMode.VelocityChange);
                 PlaySound(soundSettings.m_DoubleJump);
                 m_Jumping = true;
                 m_doubleJumpDone = true;
                 doubleJumpNow = false;
+            }
+            if (!doubleJumpNow && buffs.m_BCloudJump && buffs.m_PDoubleJump && !m_IsGrounded && m_doubleJumpDone &&
+                cloudJumpNow)
+            {
+                m_RigidBody.drag = 0f;
+                m_RigidBody.AddForce(new Vector3(0f, movementSettings.DoubleJumpForce * 2, 0f), ForceMode.VelocityChange);
+                
+                PlaySound(soundSettings.m_CloudJump);
+                m_Jumping = true;
+                cloudJumpNow = false;
+                buffs.m_BCloudJump = false;
+
             }
             if (m_IsGrounded)
             {
@@ -569,6 +609,9 @@ namespace UnityStandardAssets.Characters.FirstPerson
             }
         }
 
+        private GameObject cloudJ;
+        private GameObject speedB;
+        private GameObject featherF;
 		void OnTriggerEnter(Collider other)
 		{
 
@@ -594,20 +637,26 @@ namespace UnityStandardAssets.Characters.FirstPerson
 			    if (other.gameObject.name == "DoubleJump")
 			    {
                     
+                    
 			        buffs.m_PDoubleJump = true;
                    
 			    }
                 else if(other.gameObject.name == "FeatherFalling")
+
 			    {
+			        featherF = other.gameObject;
 			        buffs.m_BFeatherFalling = true;
+			        m_RigidBody.drag = 500f;
 			    }
                 else if (other.gameObject.name == "SpeedBoost")
                 {
                     buffs.m_BSpeedBoost = true;
+                    speedB = other.gameObject;
                     movementSettings.ForwardSpeed = movementSettings.ForwardSpeed*buffs.speedBoostSpeedIncrease;
                 }
                 else if (other.gameObject.name == "CloudJump")
-                {
+			    {
+			        cloudJ = other.gameObject.gameObject;
                     buffs.m_BCloudJump = true;
                 }
                 m_AudioSource.PlayOneShot(otherSource.clip);
@@ -615,7 +664,19 @@ namespace UnityStandardAssets.Characters.FirstPerson
 			}
 		}
 
-		void UpdateScoreText()
+        void UpdateSpeedBoost(float timeleft)
+        {
+            speedBoostText.text = "Seconds of speedboost buff left: " + timeleft.ToString();
+        }
+        void UpdateFeatherFalling(float timeleft)
+        {
+            featherFallingText.text = "Seconds of feather falling buff left: " + timeleft.ToString();
+        }
+        void UpdateCloudJump(float timeleft)
+        {
+            cloudJumpText.text = "Seconds of cloudjump buff left: "  + timeleft.ToString();
+        }
+        void UpdateScoreText()
 		{
 			scoreText.text = "Score: " + score.ToString ();
 		}

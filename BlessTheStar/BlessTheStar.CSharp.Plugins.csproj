@@ -63,12 +63,18 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Standard Assets\Characters\FirstPersonCharacter\Scripts\AgentLinkMover.cs" />
     <Compile Include="Assets\Standard Assets\Characters\FirstPersonCharacter\Scripts\BezierCurve.cs" />
     <Compile Include="Assets\Standard Assets\Characters\FirstPersonCharacter\Scripts\BezierPoint.cs" />
     <Compile Include="Assets\Standard Assets\Characters\FirstPersonCharacter\Scripts\CatStateMachine.cs" />
     <Compile Include="Assets\Standard Assets\Characters\FirstPersonCharacter\Scripts\FirstPersonController.cs" />
+    <Compile Include="Assets\Standard Assets\Characters\FirstPersonCharacter\Scripts\GrammoforLeverHandler.cs" />
     <Compile Include="Assets\Standard Assets\Characters\FirstPersonCharacter\Scripts\HeadBob.cs" />
+    <Compile Include="Assets\Standard Assets\Characters\FirstPersonCharacter\Scripts\JumpTrigger.cs" />
     <Compile Include="Assets\Standard Assets\Characters\FirstPersonCharacter\Scripts\MouseLook.cs" />
+    <Compile Include="Assets\Standard Assets\Characters\FirstPersonCharacter\Scripts\MoveDestination.cs" />
+    <Compile Include="Assets\Standard Assets\Characters\FirstPersonCharacter\Scripts\NewBehaviourScript.cs" />
+    <Compile Include="Assets\Standard Assets\Characters\FirstPersonCharacter\Scripts\PauseGame.cs" />
     <Compile Include="Assets\Standard Assets\Characters\FirstPersonCharacter\Scripts\RigidbodyFirstPersonController.cs" />
     <Compile Include="Assets\Standard Assets\Characters\RollerBall\Scripts\Ball.cs" />
     <Compile Include="Assets\Standard Assets\Characters\RollerBall\Scripts\BallUserControl.cs" />
@@ -112,6 +118,7 @@
     <Compile Include="Assets\Standard Assets\Utility\WaypointProgressTracker.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\BezierCurves\readme.txt" />
     <None Include="Assets\Standard Assets\Characters\FirstPersonCharacter\FirstPersonCharacterGuidelines.txt" />
     <None Include="Assets\Standard Assets\Characters\RollerBall\RollerBallGuidelines.txt" />
     <None Include="Assets\Standard Assets\Characters\ThirdPersonCharacter\ThirdPersonCharacterGuidelines.txt" />
