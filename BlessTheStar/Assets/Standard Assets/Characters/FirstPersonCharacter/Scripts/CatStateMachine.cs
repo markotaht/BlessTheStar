@@ -59,9 +59,9 @@ public class CatStateMachine: MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 	//	Debug.Log(Vector3.Distance (transform.position, goal.position));
-	//	Debug.Log (chilling);
+		Debug.Log (Vector3.Distance (transform.position, goal.position));
 		if (state != Alertness.SLEEP) {
-		//	Debug.Log (chilling);
+			Debug.Log (chilling);
 			if (chilling) {
 				chillTime -= Time.deltaTime;
 			//	Debug.Log (chillTime <= 0f);
@@ -73,7 +73,7 @@ public class CatStateMachine: MonoBehaviour {
 					chillTime = 10f;
 				}
 				//	Debug.Log (goal);
-			} else if (!chilling && Vector3.Distance (transform.position, goal.position) < 1f) {
+			} else if (!chilling && Vector3.Distance (transform.position, goal.position) < 3f && state != Alertness.ATTACK) {
 				//transform.position = goal.position;
 				//goal = goalPoints [Random.Range (0, goalPoints.Length)];
 				//agent.destination = goal.position;
@@ -120,12 +120,12 @@ public class CatStateMachine: MonoBehaviour {
 
     bool canSeePlayer()
     {
-		Vector3 diff = player.position - transform.position;
+		Vector3 diff = player.position - transform.Find("Eyes").gameObject.transform.position;
 		if (Vector3.Dot (diff.normalized, viewDir) > viewCone) {
 			RaycastHit hit;
-			Physics.Raycast (transform.position, diff.normalized, out hit);
+			Physics.Raycast ( transform.Find("Eyes").gameObject.transform.position, diff.normalized, out hit);
 			if (hit.transform.tag == "Player") {
-				Debug.DrawLine (transform.position, hit.point);
+				Debug.DrawLine ( transform.Find("Eyes").gameObject.transform.position, hit.point);
 				return true;
 			}
 			
