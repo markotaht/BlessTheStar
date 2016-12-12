@@ -29,8 +29,9 @@ public class CatStateMachine: MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        state = Alertness.ALERT;
-        viewCone = Mathf.Cos(Mathf.PI / 4);
+        state = Alertness.SLEEP;
+		timer = sleepTime;
+        viewCone = Mathf.Cos(Mathf.PI / 3);
         rigidBody = GetComponent<Rigidbody>();
 		goal = goalPoints [Random.Range (0, goalPoints.Length -1)];
 
@@ -97,6 +98,7 @@ public class CatStateMachine: MonoBehaviour {
 		viewDir = transform.rotation * Vector3.forward;
 		if ((state == Alertness.ALERT || state == Alertness.PATROL || state == Alertness.ATTACK) && canSeePlayer ()) {
 			state = Alertness.ATTACK;
+			agent.speed = 10f;
 			goal = player.transform;
 		//	agent.enabled = true;
 			agent.destination = goal.position;
@@ -109,6 +111,7 @@ public class CatStateMachine: MonoBehaviour {
 			if (state == Alertness.ATTACK) {
 				timer = PatrolTime;
 				state = Alertness.PATROL;
+				agent.speed = 3.5f;
 				goal = goalPoints [Random.Range (0, goalPoints.Length)];
 				//	agent.enabled = true;
 				agent.destination = goal.position;

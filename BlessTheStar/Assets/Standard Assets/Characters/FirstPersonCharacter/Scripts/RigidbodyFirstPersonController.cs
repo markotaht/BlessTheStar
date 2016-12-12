@@ -168,7 +168,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 				"COLLECT ORBS FOR POINTS AND BUFFS!",
 				"AVOID THE CAT!",
 				"AFTER COLLECTING AS MANY ORBS AS POSSIBLE, BRING THEM TO THE TREE'S STAR",
-				"'MAGIC' BUTTON TO CROUCH"
+				"HOLD 'X' TO CROUCH"
 			};
 
 			PlayerPrefs.SetInt ("orbTip", 1);
@@ -376,7 +376,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 }
                 
             }
-            // TAIMERID EI TÖÖTA 
+            // TAIMERID EI Tï¿½ï¿½TA 
 
             if (buffs.m_BSpeedBoost)
             {
