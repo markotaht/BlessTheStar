@@ -11,6 +11,7 @@ public class CatStateMachine: MonoBehaviour {
     Alertness state;
     float viewCone;
 	Vector3 viewDir;
+	public float sleepTime;
 	public float AlertTime;
 	public float PatrolTime;
 	public float AttackTime;
@@ -58,10 +59,7 @@ public class CatStateMachine: MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-	//	Debug.Log(Vector3.Distance (transform.position, goal.position));
-		Debug.Log (Vector3.Distance (transform.position, goal.position));
 		if (state != Alertness.SLEEP) {
-			Debug.Log (chilling);
 			if (chilling) {
 				chillTime -= Time.deltaTime;
 			//	Debug.Log (chillTime <= 0f);
@@ -78,8 +76,12 @@ public class CatStateMachine: MonoBehaviour {
 				//goal = goalPoints [Random.Range (0, goalPoints.Length)];
 				//agent.destination = goal.position;
 			//	agent.enabled = false;
-			
-				chilling = true;
+				if (goal.tag == "Sleep") {
+					timer = sleepTime;
+					state = Alertness.SLEEP;
+				} else {
+					chilling = true;
+				}
 			}
 		}
     }
@@ -87,8 +89,10 @@ public class CatStateMachine: MonoBehaviour {
     void FixedUpdate()
 	{	
 		
-		if(timer >0)
+		if (timer > 0) {
 			timer -= Time.deltaTime;
+			Debug.Log (Time.deltaTime);
+		}
 		
 		viewDir = transform.rotation * Vector3.forward;
 		if ((state == Alertness.ALERT || state == Alertness.PATROL || state == Alertness.ATTACK) && canSeePlayer ()) {
@@ -106,15 +110,20 @@ public class CatStateMachine: MonoBehaviour {
 				timer = PatrolTime;
 				state = Alertness.PATROL;
 				goal = goalPoints [Random.Range (0, goalPoints.Length)];
-			//	agent.enabled = true;
+				//	agent.enabled = true;
 				agent.destination = goal.position;
 			} else if (state == Alertness.PATROL) {
 				timer = AlertTime;
 				state = Alertness.ALERT;
 				//Mover around/move to some sleep position
-			}// else if(state == Alertness.ALERT){
-		//		state = Alertness.SLEEP;
-		//	}
+			} else if (state == Alertness.ALERT) {
+				state = Alertness.SLEEP;
+				timer = sleepTime;
+			} else {
+				timer = PatrolTime;
+				state = Alertness.PATROL;
+				goal = goalPoints [Random.Range (0, goalPoints.Length)];
+			}
 		}
     }
 
