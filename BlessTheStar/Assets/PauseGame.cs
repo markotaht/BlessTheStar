@@ -23,6 +23,8 @@ public class PauseGame : MonoBehaviour {
 		} else {
 			score.text = "Best score: " + highScore.ToString () + "\nBest time: " + bestTime.ToString ();
 		}
+		Cursor.lockState = CursorLockMode.Confined;
+		Cursor.visible = true;
 
 	}
 
@@ -37,18 +39,29 @@ public class PauseGame : MonoBehaviour {
 	public void Pause() {
 		if (canvas.gameObject.activeInHierarchy == false)
 		{
-			canvas.gameObject.SetActive (true);
-			Time.timeScale = 0;
-			player.GetComponent<RigidbodyFirstPersonController> ().enabled = false;
-			Cursor.visible = true;
-			AudioListener.pause = true;
+			StartPause ();
 		} else {
-			canvas.gameObject.SetActive (false);
-			Time.timeScale = 1;
-			player.GetComponent<RigidbodyFirstPersonController> ().enabled = true;
-			Cursor.visible = false;
-			AudioListener.pause = false;
+			StopPause ();
 		}
+	}
+
+	public void StartPause() {
+
+		canvas.gameObject.SetActive (true);
+		Time.timeScale = 0;
+		player.GetComponent<RigidbodyFirstPersonController> ().enabled = false;
+		Cursor.lockState = CursorLockMode.Confined;
+		Cursor.visible = true;
+		AudioListener.pause = true;
+	}
+
+	public void StopPause() {
+		canvas.gameObject.SetActive (false);
+		Time.timeScale = 1;
+		player.GetComponent<RigidbodyFirstPersonController> ().enabled = true;
+		Cursor.lockState = CursorLockMode.Locked;
+		Cursor.visible = false;
+		AudioListener.pause = false;
 	}
 
 	public void Exit() {
