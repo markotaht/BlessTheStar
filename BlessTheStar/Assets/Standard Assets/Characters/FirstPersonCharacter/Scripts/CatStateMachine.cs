@@ -17,7 +17,6 @@ public class CatStateMachine: MonoBehaviour {
 	float timer;
 
     Rigidbody rigidBody;
-	public Transform target;
 	public float speed;
 
 	public Transform[] goalPoints;
@@ -69,7 +68,7 @@ public class CatStateMachine: MonoBehaviour {
 				if (chillTime <= 0f) {
 					chilling = false;
 					goal = goalPoints [Random.Range (0, goalPoints.Length)];
-					agent.enabled = true;
+				//	agent.enabled = true;
 					agent.destination = goal.position;
 					chillTime = 10f;
 				}
@@ -78,7 +77,8 @@ public class CatStateMachine: MonoBehaviour {
 				//transform.position = goal.position;
 				//goal = goalPoints [Random.Range (0, goalPoints.Length)];
 				//agent.destination = goal.position;
-				agent.enabled = false;
+			//	agent.enabled = false;
+			
 				chilling = true;
 			}
 		}
@@ -94,18 +94,19 @@ public class CatStateMachine: MonoBehaviour {
 		if ((state == Alertness.ALERT || state == Alertness.PATROL || state == Alertness.ATTACK) && canSeePlayer ()) {
 			state = Alertness.ATTACK;
 			goal = player.transform;
-			agent.enabled = true;
+		//	agent.enabled = true;
 			agent.destination = goal.position;
 			timer = AttackTime;
 		} else if (state == Alertness.ATTACK) {
 			goal = player.transform;
 		}
+		Debug.Log (timer);
 		if (timer < 0) {
 			if (state == Alertness.ATTACK) {
 				timer = PatrolTime;
 				state = Alertness.PATROL;
 				goal = goalPoints [Random.Range (0, goalPoints.Length)];
-				agent.enabled = true;
+			//	agent.enabled = true;
 				agent.destination = goal.position;
 			} else if (state == Alertness.PATROL) {
 				timer = AlertTime;
@@ -131,9 +132,4 @@ public class CatStateMachine: MonoBehaviour {
 		}
 		return false;
     }
-
-	public void SetTarget(Transform target)
-	{
-		this.target = target;
-	}
 }
