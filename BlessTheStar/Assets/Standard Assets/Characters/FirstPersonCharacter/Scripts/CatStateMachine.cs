@@ -29,11 +29,11 @@ public class CatStateMachine: MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        state = Alertness.SLEEP;
-		timer = sleepTime;
-        viewCone = Mathf.Cos(Mathf.PI / 3);
+		state = Alertness.ALERT;
+		timer = AlertTime;
+        viewCone = Mathf.Cos(Mathf.PI /4);
         rigidBody = GetComponent<Rigidbody>();
-		goal = goalPoints [Random.Range (0, goalPoints.Length -1)];
+		goal = goalPoints [Random.Range (0, goalPoints.Length)];
 
 		agent = GetComponent<NavMeshAgent> ();
 		agent.destination = goal.position; 
@@ -133,7 +133,9 @@ public class CatStateMachine: MonoBehaviour {
     bool canSeePlayer()
     {
 		Vector3 diff = player.position - transform.Find("Eyes").gameObject.transform.position;
-		if (Vector3.Dot (diff.normalized, viewDir) > viewCone) {
+		Debug.Log (diff);
+		if (Vector3.Dot (diff.normalized, viewDir) < viewCone) {
+			Debug.Log ("SIIN");
 			RaycastHit hit;
 			Physics.Raycast ( transform.Find("Eyes").gameObject.transform.position, diff.normalized, out hit);
 			if (hit.transform.tag == "Player") {

@@ -4,6 +4,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 {
 	public class NewBehaviourScript : MonoBehaviour {
 
+		public AudioSource clip;
 		public bool win;
 		void OnTriggerEnter(Collider other){
 			if (other.tag == "Player") {
@@ -19,7 +20,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 						PlayerPrefs.GetFloat ("besttime", old_time);
 					}
 				} else {
-
+					clip.PlayOneShot (clip.clip);
 				}
 				Application.LoadLevel (0);
 				Cursor.lockState = CursorLockMode.None;
